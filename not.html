@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Drive - Google Drive</title>
+  <link rel="icon" type="image/png" href="https://ssl.gstatic.com/images/branding/product/2x/drive_2020q4_32dp.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0d0d0d, #1a001f, #000);
+  background-size: 400% 400%;
+  animation: bgmove 15s infinite alternate;
+  color: #fff;
+}
+@keyframes bgmove {
+  0% {background-position: 0% 50%;}
+  100% {background-position: 100% 50%;}
+}
+
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.active-icon {
+  color: #66c0f4 !important;
+
+}
+
+
+.content {
+  flex-grow: 1;
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+#mainFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  position: relative;
+  z-index: 0;
+  border-radius: 20px;
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
+  pointer-events: auto;
+}
+.slideout {
+  position: absolute;
+  top: 0;
+  right: -420px;
+  width: 420px;
+  height: 100%;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(25px) saturate(220%);
+  overflow: hidden;
+  transition: right 0.5s cubic-bezier(0.25,1,0.3,1);
+  border-radius: 28px 0 0 28px;
+  z-index: 1003;
+}
+.slideout.active { right: 0; }
+.slideout iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: auto;
+
+}
+
+/* Loader */
+.loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid #ff00aa;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  pointer-events: none;
+}
+@keyframes spin {
+  0% {transform: translate(-50%, -50%) rotate(0);}
+  100% {transform: translate(-50%, -50%) rotate(360deg);}
+}
+.loader.hidden {display: none;}
+</style>
+</head>
+<body>
+
+
+<nav class="glass-effect fixed top-1/2 left-4 -translate-y-1/2 z-50 rounded-2xl px-3 py-6 shadow-lg">
+  <div class="flex flex-col items-center space-y-6 text-2xl text-gray-200">
+    <a href="#" class="nav-link" data-url="/homereal.html" title="Home"><i class="fa-solid fa-house"></i></a>
+    <a href="#" class="nav-link" data-url="/parert" title="Games"><i class="fa-solid fa-gamepad"></i></a>
+    <a href="#" class="nav-link" data-url="/apps.html" title="Apps"><i class="fa-solid fa-shapes"></i></a>
+    <a href="#" class="nav-link" data-url="/chnat.html.html" title="Chat"><i class="fa-solid fa-comments"></i></a>
+    <a href="#" class="nav-link side-toggle" data-url="/treer.html" title="AI"><i class="fa-solid fa-headphones"></i></a>
+
+    <a href="#" class="nav-link" data-url="/settings.html" title="Settings"><i class="fa-solid fa-gear"></i></a>
+
+  </div>
+</nav>
+
+
+<div class="content">
+  <div id="mainLoader" class="loader hidden"></div>
+  <iframe id="mainFrame" src="/homereal.html" spellcheck="false" aria-label=""></iframe>
+
+  <div class="slideout" id="slideout">
+    <div id="sideLoader" class="loader hidden"></div>
+    <iframe id="sideFrame" src="/treer.html" spellcheck="false" aria-label=""></iframe>
+  </div>
+</div>
+
+<script>
+const mainFrame = document.getElementById("mainFrame");
+const slideout = document.getElementById("slideout");
+const sideFrame = document.getElementById("sideFrame");
+const links = document.querySelectorAll(".nav-link");
+const mainLoader = document.getElementById("mainLoader");
+const sideLoader = document.getElementById("sideLoader");
+
+function showLoader(loader, frame) {
+  loader.classList.remove("hidden");
+  frame.addEventListener("load", () => {
+    loader.classList.add("hidden");
+  }, { once: true });
+}
+if (mainFrame) showLoader(mainLoader, mainFrame);
+
+const loadedSideUrls = new Set();
+
+links.forEach(link => {
+  link.addEventListener("click", e => {
+    e.preventDefault();
+    const url = link.getAttribute("data-url");
+
+    if (link.classList.contains("side-toggle")) {
+      if (slideout.classList.contains("active") && sideFrame.src.includes(url)) {
+        slideout.classList.remove("active");
+      } else {
+        if (!loadedSideUrls.has(url)) {
+          sideFrame.src = url;
+          showLoader(sideLoader, sideFrame);
+          loadedSideUrls.add(url);
+        }
+        slideout.classList.add("active");
+      }
+    } else {
+      slideout.classList.remove("active");
+      mainFrame.src = url;
+      showLoader(mainLoader, mainFrame);
+    }
+
+    links.forEach(l => {
+      const icon = l.querySelector("i");
+      if (icon) icon.classList.remove("active-icon");
+    });
+    const icon = link.querySelector("i");
+    if (icon) icon.classList.add("active-icon");
+  });
+});
+
+function loadSidebarUnlocks() {
+  const unlocks = JSON.parse(localStorage.getItem("sidebarUnlocks")) || [];
+  if (unlocks.includes("sneakpeek")) {
+    const el = document.getElementById("sneakpeek-link");
+    if (el) el.classList.remove("hidden");
+  }
+}
+window.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "unlockSidebar" && event.data.id === "sneakpeek") {
+    const el = document.getElementById("sneakpeek-link");
+    if (el) el.classList.remove("hidden");
+  }
+});
+loadSidebarUnlocks();
+
+if (links[0]) {
+  const firstIcon = links[0].querySelector("i");
+  if (firstIcon) firstIcon.classList.add("active-icon");
+}
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - File Not Found</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: monospace;
+    background: #001f3f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #big404 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 120px;
+    color: #000;
+    text-shadow: 0 0 20px #003366, 0 0 50px #003366;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+<canvas id="matrix"></canvas>
+<div id="big404">404</div>
+<script>
+const canvas = document.getElementById('matrix');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const cols = Math.floor(canvas.width / 16);
+const drops = Array(cols).fill(1);
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0, 0, 50, 0.05)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#00bfff';
+  ctx.font = '16px monospace';
+
+  for (let i = 0; i < drops.length; i++) {
+    const text = String.fromCharCode(33 + Math.random() * 94);
+    ctx.fillText(text, i * 16, drops[i] * 16);
+    drops[i]++;
+    if (drops[i] * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+  }
+  requestAnimationFrame(drawMatrix);
+}
+
+drawMatrix();
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>

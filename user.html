@@ -1,0 +1,414 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI Chat + File & Link Scanner — Fixed</title>
+<style>
+:root {
+  --bg: #05070a;
+  --panel: rgba(20, 20, 30, 0.65);
+  --accent: #3b82f6;
+  --accent2: #06b6d4;
+  --text: #f5f7fa;
+  --muted: #98a2b3;
+  --glow: 0 0 15px rgba(59,130,246,0.35);
+  --blur: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 30% 20%, #0b1220, #000);
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+}
+
+header {
+  backdrop-filter: blur(var(--blur));
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 16px 20px;
+  text-align: center;
+  box-shadow: var(--glow);
+}
+
+header h1 {
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+header .small {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  scroll-behavior: smooth;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  backdrop-filter: blur(calc(var(--blur) / 2));
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  animation: fadeIn 0.3s ease;
+}
+
+.user {
+  align-self: flex-end;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: #fff;
+}
+
+.bot {
+  align-self: flex-start;
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+#controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: rgba(10,10,15,0.75);
+  backdrop-filter: blur(var(--blur));
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+}
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  box-shadow: var(--glow);
+}
+button:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+input[type="file"] {
+  color: var(--muted);
+  font-size: 13px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  padding: 6px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+#notice {
+  display: none;
+  padding: 12px;
+  background: rgba(255, 193, 7, 0.15);
+  border-left: 3px solid #facc15;
+  border-radius: 10px;
+  margin: 10px 20px;
+  color: #fef3c7;
+}
+
+#options {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#proxySelect {
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 13px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* scrollbar styling */
+#chat::-webkit-scrollbar {
+  width: 8px;
+}
+#chat::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--accent), var(--accent2));
+  border-radius: 10px;
+}
+</style>
+
+</head>
+<body>
+  <header>
+    <h1>AI Chat + File & Link Scanner — Fixed</h1>
+    <div class="small">Paste a public URL OR upload a text/html/csv/js/txt file. If fetch is CORS-blocked the page will be fetched via a public CORS proxy (see notice).</div>
+  </header>
+
+  <div id="chat" aria-live="polite"></div>
+
+  <div id="notice" style="display:none"></div>
+
+  <div id="controls">
+    <input id="fileInput" type="file" accept=".txt,.html,.htm,.csv,.js,.json,.md" />
+    <input id="userInput" type="text" placeholder="Ask or paste a link (https://...) — then press Send" />
+    <button id="sendBtn">Send</button>
+    <div id="options">
+      <label class="small">Use proxy?</label>
+      <select id="proxySelect" title="CORS proxy fallback">
+        <option value="auto">Auto (try direct, then proxy)</option>
+        <option value="none">None (direct-only)</option>
+        <option value="allorigins">AllOrigins proxy</option>
+        <option value="corsanywhere">CORS Anywhere (demo)</option>
+      </select>
+    </div>
+  </div>
+
+<script>
+/* ------------------ CONFIG ------------------ */
+const apiKey = "AIzaSyA3nm5sZIzcTVevFuPMc0au4aUps6s5J2M"; // your key (you provided)
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+/* ------------------ UI helpers ------------------ */
+const chat = document.getElementById('chat');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const fileInput = document.getElementById('fileInput');
+const notice = document.getElementById('notice');
+const proxySelect = document.getElementById('proxySelect');
+
+function addMessage(text, who='bot') {
+  const el = document.createElement('div');
+  el.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
+  // use textContent to avoid injecting HTML
+  el.textContent = text;
+  chat.appendChild(el);
+  chat.scrollTop = chat.scrollHeight;
+  return el;
+}
+
+function addMeta(el, metaText) {
+  const m = document.createElement('div');
+  m.className = 'meta';
+  m.textContent = metaText;
+  el.appendChild(m);
+}
+
+function setNotice(msg, show=true) {
+  if (!show) { notice.style.display='none'; return; }
+  notice.style.display='block';
+  notice.textContent = msg;
+}
+
+/* ------------------ file reading ------------------ */
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result || ''));
+    r.onerror = (e) => reject(e);
+    r.readAsText(file);
+  });
+}
+
+/* ------------------ page fetch with CORS fallback ------------------ */
+async function tryFetchUrl(url, proxyMode='auto') {
+  // direct fetch attempt
+  try {
+    const direct = await fetch(url, {method:'GET', mode:'cors'});
+    if (!direct.ok) throw new Error('HTTP ' + direct.status);
+    const html = await direct.text();
+    return {source:'direct', html};
+  } catch (err) {
+    // If user explicitly set proxy 'none', don't attempt proxy
+    if (proxyMode === 'none') throw new Error('Direct fetch failed and proxy disabled — CORS likely.');
+
+    // Choose proxy
+    let proxyUrl;
+    if (proxyMode === 'allorigins' || (proxyMode==='auto' && true)) {
+      // AllOrigins raw endpoint returns raw body
+      proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url);
+      try {
+        const p = await fetch(proxyUrl);
+        if (!p.ok) throw new Error('Proxy HTTP ' + p.status);
+        const html = await p.text();
+        return {source:'allorigins', html, proxyUsed:proxyUrl};
+      } catch (e2) {
+        // fallthrough to next proxy
+        console.warn('allorigins failed:', e2);
+      }
+    }
+
+    if (proxyMode === 'corsanywhere' || proxyMode === 'auto') {
+      // Demo CORS Anywhere (may be rate-limited). For production run your own proxy.
+      proxyUrl = 'https://cors-anywhere.herokuapp.com/' + url;
+      try {
+        const p = await fetch(proxyUrl);
+        if (!p.ok) throw new Error('Proxy HTTP ' + p.status);
+        const html = await p.text();
+        return {source:'cors-anywhere', html, proxyUsed:proxyUrl};
+      } catch (e3) {
+        console.warn('cors-anywhere failed:', e3);
+      }
+    }
+
+    throw new Error('All fetch attempts failed. (CORS / network error). Last error: ' + (err && err.message));
+  }
+}
+
+/* ------------------ extract text from HTML ------------------ */
+function extractTextFromHtml(html, maxChars=6000) {
+  try {
+    // remove scripts/styles and tags
+    let text = html.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+                   .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+                   .replace(/<[^>]+>/g, ' ')
+                   .replace(/\s+/g, ' ')
+                   .trim();
+    if (text.length > maxChars) text = text.slice(0, maxChars) + ' ... [truncated]';
+    return text;
+  } catch (e) {
+    return '[Could not extract text from HTML]';
+  }
+}
+
+/* ------------------ call Gemini API ------------------ */
+async function callGemini(prompt) {
+  // Basic request body similar to the earlier working example.
+  // Note: For production, craft a better request based on latest API docs.
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }]
+  };
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    const txt = await response.text();
+    throw new Error('Model API HTTP ' + response.status + ' — ' + txt);
+  }
+  const j = await response.json();
+  // Try multiple common response shapes safely
+  const text = (j?.candidates?.[0]?.content?.parts?.[0]?.text)
+             || (j?.candidates?.[0]?.content?.[0]?.text)
+             || (j?.output?.[0]?.content?.text)
+             || JSON.stringify(j).slice(0, 4000);
+  return {raw: j, text};
+}
+
+/* ------------------ main send workflow ------------------ */
+async function handleSend() {
+  const text = (userInput.value || '').trim();
+  const file = fileInput.files && fileInput.files[0];
+  if (!text && !file) return;
+  // User message display
+  const userMsg = addMessage(text || ('(uploaded file: ' + (file && file.name) + ')'), 'user');
+  addMeta(userMsg, new Date().toLocaleString());
+
+  // Build prompt
+  let prompt = '';
+  let fetchInfo = null;
+  setNotice('', false);
+
+  try {
+    if (file) {
+      // Read file text
+      const content = await readFileAsText(file);
+      prompt = `Analyze this uploaded file named "${file.name}". Show a short summary and any notable points. File start:\n\n${content.slice(0,6000)}`;
+      addMessage('🔎 Reading uploaded file and sending to model...', 'bot');
+    } else if (/^https?:\/\//i.test(text)) {
+      addMessage('🔎 Fetching webpage content — trying direct request (may be CORS-blocked)...', 'bot');
+      const proxyMode = proxySelect.value; // 'auto'|'none'|'allorigins'|'corsanywhere'
+      let fetched = null;
+      try {
+        fetched = await tryFetchUrl(text, proxyMode);
+      } catch (fetchErr) {
+        // show a helpful error and give user the option to enable proxy
+        setNotice('Fetch failed: ' + fetchErr.message + ' — If this is a CORS error, try selecting a proxy from the dropdown (AllOrigins recommended).', true);
+        throw fetchErr;
+      }
+      fetchInfo = fetched;
+      const extracted = extractTextFromHtml(fetched.html, 8000);
+      prompt = `Here is text extracted from ${text} (source: ${fetched.source}${fetched.proxyUsed ? ', proxy:'+fetched.proxyUsed : ''}). Please: summarize the page in ~6 lines, list 5 important facts, and suggest follow-up questions.\n\n${extracted}`;
+      addMessage(`✅ Fetched page via ${fetched.source}${fetched.proxyUsed ? ' (proxy used)' : ''}. Sending to model...`, 'bot');
+    } else {
+      // Plain text prompt
+      prompt = text;
+      addMessage('🔎 Sending your text to the model...', 'bot');
+    }
+
+    // show thinking
+    const thinking = addMessage('🤖 Thinking...', 'bot');
+
+    // call model
+    const out = await callGemini(prompt);
+
+    // remove thinking and show output
+    thinking.remove();
+    const botMsg = addMessage(out.text || '[No textual response returned]', 'bot');
+    addMeta(botMsg, 'Model response — ' + (new Date().toLocaleString()));
+  } catch (err) {
+    console.error('Error workflow:', err);
+    addMessage('⚠️ Error: ' + String(err.message || err), 'bot');
+  } finally {
+    // clear inputs
+    userInput.value = '';
+    fileInput.value = ''; // note: this resets the file input
+  }
+}
+
+/* ------------------ events ------------------ */
+sendBtn.addEventListener('click', handleSend);
+userInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
+
+/* ------------------ small demo content ------------------ */
+addMessage('Welcome! Paste a URL (https://...) or upload a text/html file. If a page is CORS-blocked the script will attempt a public proxy (AllOrigins). For private pages or auth-protected pages you will need a server-side proxy.', 'bot');
+
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Email Example</title>
+</head>
+<body>
+  <h2>Contact Us</h2>
+
+  <!-- Simple mailto link -->
+  <p>
+    <a href="mailto:someone@example.com?subject=Hello&body=Hi%20there!">
+      Click here to send us an email
+    </a>
+  </p>
+
+  <!-- Or use a form -->
+  <form action="mailto:iloveramen661@gmail.com" method="POST" enctype="text/plain">
+    <label>Name:</label><br>
+    <input type="text" name="name"><br><br>
+
+    <label>Email:</label><br>
+    <input type="email" name="email"><br><br>
+
+    <label>Message:</label><br>
+    <textarea name="message"></textarea><br><br>
+
+    <button type="submit">Send Email</button>
+  </form>
+
+  <p><small>(This will open the user’s default email app, not send directly.)</small></p>
+</body>
+</html>

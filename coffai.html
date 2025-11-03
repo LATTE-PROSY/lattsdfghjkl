@@ -1,0 +1,303 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  <base href="https://cdn.jsdelivr.net/gh/LATTE-PROSY/vtx-chat@main/">
+    <meta charset="utf-8" />
+    <!-- Google Tag Manager -->
+    <script src="/js/gtm.js"></script>
+    <!-- Firebase Initialization -->
+    <script type="module" src="/js/firebase-init.js"></script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vortex - Chat</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
+    />
+    <link rel="stylesheet" href="css/chat.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/app/css/app.css" />
+    <link rel="stylesheet" href="/app/css/nav.css" />
+    <link rel="stylesheet" href="/css/whats-new.css" />
+    <link rel="stylesheet" href="/css/popup.css" />
+
+    <link rel="icon" type="image/x-icon" href="/img/vortex_transparent.png" />
+    <link rel="apple-touch-icon" href="/img/vortex_transparent.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/jwt-decode.js"></script>
+    <!--<script src="/js/sw-register.js"></script>-->
+    <script src="/js/sw-unregister.js"></script>
+  </head>
+
+  <body>
+    <div id="bg"></div>
+    <div class="container">
+      <div id="sidebar" class="sidebar"></div>
+      <div class="content">
+        <div id="effect_overlay"></div>
+        <div id="loader" class="double-loader offset">
+          <img class="outer" src="/img/loader_outer.png" alt="Loading..." />
+          <img class="inner" src="/img/loader_inner.png" alt="Loading..." />
+        </div>
+        <div id="profileBtn" onclick="profiles(true)">
+          <span style="padding-right: 10px" class="material-symbols-rounded">
+            group </span
+          ><span id="onlineSmall">0</span>
+        </div>
+        <div id="embedBtns">
+          <div onclick="window.history.back();">
+            <span class="material-symbols-rounded"> arrow_back </span>
+          </div>
+          <div onclick="window.location.href = '/app/dashboard'">
+            <span class="material-symbols-rounded"> dashboard </span>
+          </div>
+        </div>
+        <div class="profiles" id="profileMenu">
+          <p id="online">0 User(s) Online</p>
+          <div id="profiles"></div>
+          <div id="onlineRecordProgress"></div>
+        </div>
+        <div class="messageArea" id="messageArea">
+          <p id="roomInfo">Vortex Chat: Loading...</p>
+          <br />
+          <div id="messages">
+            <span id="newMsgs" onclick="scrollToBottom(true)"
+              ><span class="material-symbols-rounded"> arrow_downward </span>
+              New Messages
+              <span class="material-symbols-rounded">
+                arrow_downward
+              </span></span
+            >
+          </div>
+          <span id="typing"></span>
+          <div id="autocomplete"></div>
+        </div>
+        <span id="reply"></span>
+        <div id="options"></div>
+        <div class="inputArea">
+          <button disabled id="btn_emotes" onclick="modal_emotes()">
+            <span class="material-symbols-rounded"> mood </span>
+          </button>
+          <button disabled id="btn_effects" onclick="modal_effects()">
+            <span class="material-symbols-rounded"> flare </span>
+          </button>
+          <button disabled id="btn_color" onclick="modal_chatColor()">
+            <span class="material-symbols-rounded"> palette </span>
+          </button>
+          <button disabled id="btn_gift" onclick="modal_gift()">
+            <span class="material-symbols-rounded">
+              featured_seasonal_and_gifts
+            </span>
+          </button>
+          <input
+            disabled
+            id="input_message"
+            autocomplete="off"
+            placeholder="Connecting..."
+            type="text"
+            maxlength="300"
+            oninput="onInput()"
+          />
+          <button disabled id="input_send" onclick="send()">
+            <span class="material-symbols-rounded"> send </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <ul id="custom-menu" class="context-menu">
+      <li data-action="reply">
+        <span class="material-symbols-rounded"> prompt_suggestion </span>
+        <span class="label">Reply</span>
+      </li>
+      <li data-action="report" class="red">
+        <span class="material-symbols-rounded"> flag </span>
+        <span class="label">Report</span>
+      </li>
+      <li data-action="reaction" class="disabled">
+        <span class="material-symbols-rounded"> mood </span>
+        <span class="label">Add Reaction (Coming Soon)</span>
+      </li>
+    </ul>
+    <canvas class="overlay" id="overlay"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2.x/dist/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emoji-js@3.6.0/lib/emoji.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" src="js/VortexShaderFramework.js"></script>
+    <script src="/js/index.js"></script>
+    <script src="/js/socket.js"></script>
+    <script src="/js/moment.js"></script>
+    <script src="/js/bg.js"></script>
+    <script src="/js/notify.js"></script>
+    <script src="/js/appdata.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="/js/jwt-decode.js"></script>
+    <svg width="0" height="0">
+      <svg width="0" height="0">
+        <filter id="rgb-split">
+          <feOffset in="SourceGraphic" dx="0" dy="0" result="layer-one" />
+          <feComponentTransfer in="layer-one" result="red">
+            <feFuncR type="identity" />
+            <feFuncG type="discrete" tableValues="0" />
+            <feFuncB type="discrete" tableValues="0" />
+          </feComponentTransfer>
+
+          <feOffset in="SourceGraphic" dx="0" dy="0" result="layer-two" />
+          <feComponentTransfer in="layer-two" result="cyan">
+            <feFuncR type="discrete" tableValues="0" />
+            <feFuncG type="identity" />
+            <feFuncB type="identity" />
+          </feComponentTransfer>
+
+          <feBlend in="red" in2="cyan" mode="screen" result="color-split" />
+        </filter>
+      </svg>
+    </svg>
+    <div class="gift-offer-popup" id="rulesModal">
+      <div class="gift-offer-content" style="max-width: 1000px">
+        <div class="gift-offer-header">
+          <h1>
+            <span class="material-symbols-rounded">gavel</span>
+          </h1>
+          <h2>Vortex Chat Rules</h2>
+        </div>
+        <div class="gift-offer-body">
+          <p>Please review and accept the Vortex Chat Rules to continue.</p>
+        </div>
+        <div class="rules-container">
+          <div class="item">
+            <h2>1. Respectful Behavior</h2>
+            <p>
+              Treat fellow members with respect and courtesy. Avoid any behavior
+              that could be seen as disrespectful, offensive, or harmful.
+            </p>
+            <p>
+              Be mindful of your language and tone in interactions. While
+              profanity is allowed, refrain from using derogatory or
+              inflammatory language, especially hate speech or slurs.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>2. Content Standards</h2>
+            <p>
+              Share content that is suitable for a diverse audience. Steer clear
+              of posting material that is defamatory, abusive, obscene,
+              threatening, NSFW, or otherwise inappropriate.
+            </p>
+            <p>
+              Do not share content that promotes violence, discrimination, hate
+              speech, or illegal activities.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>3. Respect for Privacy</h2>
+            <p>
+              Respect the privacy of others. Never share personal information
+              about fellow members without their consent.
+            </p>
+            <p>
+              Do not engage in stalking, harassment, or any invasion of privacy.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>4. Spam and Advertising</h2>
+            <p>
+              Avoid spamming Vortex with unnecessary messages or advertisements.
+            </p>
+            <p>
+              Advertising external products or services without permission is
+              prohibited.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>5. Language</h2>
+            <p>
+              English is the primary language for communication within the
+              community. Using other languages may hinder moderation efforts and
+              is therefore not allowed.
+            </p>
+            <p>
+              Use English for all communications, including DMs, feedback, and
+              chat messages.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>6. Reporting Violations</h2>
+            <p>
+              If you see any violations of these community guidelines, report
+              them to the moderators or administrators by right-clicking
+              messages.
+            </p>
+            <p>
+              Provide clear and detailed information when reporting violations
+              to assist in taking appropriate action.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>7. Consequences of Violations</h2>
+            <p>
+              Violations of these guidelines may lead to warnings, temporary
+              suspensions, or permanent bans from the community.
+            </p>
+            <p>
+              The severity of the consequences will depend on the nature and
+              seriousness of the violation, as determined by the moderators or
+              administrators.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>8. Moderator Authority</h2>
+            <p>
+              Moderators have the final say in all matters related to the
+              community guidelines. Their decisions are binding and must be
+              respected by all members.
+            </p>
+            <p>
+              Attempts to exploit loopholes in the guidelines will not be
+              tolerated. Members are expected to adhere to the spirit of the
+              guidelines, not just the letter.
+            </p>
+          </div>
+
+          <div class="item">
+            <h2>9. Contact Us</h2>
+            <p>
+              If you have any questions about these guidelines, please contact
+              us using the contact app.
+            </p>
+            <p>
+              We welcome your feedback and inquiries regarding the community
+              guidelines, and we will strive to address any concerns you may
+              have promptly.
+            </p>
+          </div>
+        </div>
+        <p class="gift-note">Last Updated: September 2025</p>
+        <div class="gift-offer-buttons">
+          <button
+            class="gift-reject-btn"
+            onclick="window.location.href = '/app/chat'"
+          >
+            Decline
+          </button>
+          <button class="gift-accept-btn" onclick="acceptRules()">
+            Accept
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

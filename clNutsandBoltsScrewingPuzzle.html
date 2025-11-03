@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Latte Market — Tab Island Edition</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+/* 🌙 Apple-like Minimal UI */
+body {
+  background: radial-gradient(circle at top, #1b1a20 0%, #0e0d12 100%);
+  color: #f2f2f2;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* 🧭 Tab Island Bar */
+.tab-island {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(35, 35, 40, 0.6);
+  backdrop-filter: blur(20px);
+  padding: 12px 20px;
+  border-radius: 40px;
+  margin: 20px auto;
+  width: fit-content;
+  gap: 18px;
+  box-shadow: 0 0 20px rgba(200, 200, 255, 0.1);
+}
+
+.tab-island button {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 15px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.tab-island button.active,
+.tab-island button:hover {
+  background: linear-gradient(135deg, #b8a6ff, #ff9de2);
+  color: #111;
+}
+
+/* 📦 Market Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+}
+h1 {
+  font-size: 30px;
+  color: #d6ccff;
+  text-align: center;
+  margin-bottom: 8px;
+}
+p.subtitle {
+  color: #bbb;
+  text-align: center;
+  margin-bottom: 30px;
+}
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* 💠 App Cards */
+.app-card {
+  background: rgba(28, 28, 34, 0.85);
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+.app-card:hover {
+  transform: translateY(-4px);
+  background: rgba(38, 38, 46, 0.95);
+  box-shadow: 0 4px 18px rgba(150, 130, 255, 0.15);
+}
+
+/* 🧊 Icons */
+.app-icon {
+  width: 58px; height: 58px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(180, 140, 255, 0.3);
+}
+.app-icon img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.app-info { flex: 1; }
+.app-info h2 {
+  font-size: 16px;
+  color: #fff;
+  margin: 0 0 6px 0;
+}
+.meta {
+  font-size: 13px; color: #aaa;
+  display: flex; align-items: center; gap: 8px;
+}
+.rating {
+  color: #f7c843;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* ⬇️ Install Button */
+.install-btn {
+  background: linear-gradient(135deg, #2e2e38, #383847);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.install-btn:hover {
+  background: linear-gradient(135deg, #3a3a45, #4a4a58);
+}
+.install-btn.installed {
+  background: linear-gradient(135deg, #164a2a, #1e6a3b);
+  color: #aaffcc;
+}
+</style>
+</head>
+<body>
+
+<!-- 🧭 Apple-like Tab Bar -->
+<div class="tab-island">
+  <button class="active" data-tab="market"><i class="fa-solid fa-store"></i> Market</button>
+  <button data-tab="installed"><i class="fa-solid fa-box"></i> Installed</button>
+  <button data-tab="shared"><i class="fa-solid fa-cloud-arrow-down"></i> Shared</button>
+</div>
+
+<div class="container">
+  <h1>Latte Market</h1>
+  <p class="subtitle">Discover and install beautiful apps for your Latte OS.</p>
+  <div class="market-grid" id="marketGrid"></div>
+</div>
+
+<script>
+/* ☕ Latte Shared System (saves apps across pages) */
+const System = {
+  getApps: () => JSON.parse(localStorage.getItem("latte_apps") || "[]"),
+  addApp: app => {
+    const apps = System.getApps();
+    if (!apps.find(a => a.id === app.id)) {
+      apps.push(app);
+      localStorage.setItem("latte_apps", JSON.stringify(apps));
+    }
+  }
+};
+
+/* 📱 App Data */
+const apps = [
+  { id: 'partners', title: 'Partners', size: '2.8 MB', category: 'Utility', rating: 4.4,
+    icon: 'https://cdn-icons-png.flaticon.com/512/2965/2965455.png', url: '#' },
+  { id: 'fillet', title: 'Fillet Browser', size: '6.2 MB', category: 'Browser', rating: 4.7,
+    icon: 'https://cdn-icons-png.flaticon.com/512/3039/3039381.png', url: '#' },
+  { id: 'hotline', title: 'Hotline Miami', size: '8.2 MB', category: 'Action', rating: 4.8,
+    icon: 'https://upload.wikimedia.org/wikipedia/en/2/2b/Hotline_Miami_cover.jpg', url: '#' },
+  { id: 'apple-shooter', title: 'Apple Shooter', size: '3.7 MB', category: 'Sports', rating: 4.2,
+    icon: 'https://play-lh.googleusercontent.com/6EEnwEt0dzzztcAjm0JqpVvEylQ4H_lDJvAtCH1KkCFbnjpi5RMYogX_f03VMIcMhzA=w480-h960', url: '#' },
+  { id: 'hollow', title: 'Hollow Knight', size: '9.1 MB', category: 'Adventure', rating: 4.9,
+    icon: 'https://upload.wikimedia.org/wikipedia/en/3/32/Hollow_Knight_cover.jpg', url: '#' }
+];
+
+/* 🧩 Render Market */
+const grid = document.getElementById("marketGrid");
+function renderMarket(view = "market") {
+  grid.innerHTML = "";
+  const installed = System.getApps();
+
+  let data = view === "installed" ? installed : apps;
+  if (view === "shared") {
+    grid.innerHTML = `<p style="text-align:center;color:#aaa;">Shared cloud coming soon ☁️</p>`;
+    return;
+  }
+
+  data.forEach(app => {
+    const isInstalled = installed.some(a => a.id === app.id);
+    const card = document.createElement("div");
+    card.className = "app-card";
+    card.innerHTML = `
+      <div class="app-icon"><img src="${app.icon}" alt=""></div>
+      <div class="app-info">
+        <h2>${app.title}</h2>
+        <div class="meta">
+          <i class="fa-solid fa-database"></i>${app.size}
+          <i class="fa-solid fa-tag"></i>${app.category}
+          <div class="rating"><i class="fa-solid fa-star"></i>${app.rating}</div>
+        </div>
+      </div>
+      <button class="install-btn ${isInstalled ? 'installed' : ''}" data-id="${app.id}">
+        ${isInstalled ? '✔ Installed' : '<i class="fa-solid fa-download"></i> Install'}
+      </button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+/* 💾 Install System */
+grid.addEventListener("click", e => {
+  if (e.target.closest(".install-btn")) {
+    const btn = e.target.closest(".install-btn");
+    const id = btn.dataset.id;
+    const app = apps.find(a => a.id === id);
+    if (!btn.classList.contains("installed")) {
+      System.addApp(app);
+      btn.classList.add("installed");
+      btn.innerHTML = "✔ Installed";
+    }
+  }
+});
+
+/* 🧭 Tabs */
+document.querySelectorAll(".tab-island button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelector(".tab-island button.active")?.classList.remove("active");
+    btn.classList.add("active");
+    renderMarket(btn.dataset.tab);
+  });
+});
+
+renderMarket();
+</script>
+
+</body>
+</html>

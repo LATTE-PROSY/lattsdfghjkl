@@ -1,0 +1,50 @@
+
+<!--
+
+hi
+
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/j/1.css">
+  <link rel="stylesheet" href="/j/2.css">
+
+  <title>Argon</title>
+  <script type="module" crossorigin src="/j/d.js"></script>
+  <link rel="stylesheet" crossorigin href="/j/f.js">
+</head>
+
+
+<body data-new-gr-c-s-check-loaded="14.1256.0" data-gr-ext-installed="" data-new-gr-c-s-loaded="14.1256.0">
+  
+  <div id="app"><main class="svelte-1vawzwh"><main role="none" class="svelte-otvb51" style="display: none;"><div role="none" class="island svelte-otvb51"><!----><!----><!----></div></main><!----> <main class="svelte-kelaby"><div class="main-holder svelte-kelaby"><span class="svelte-3kdm3h"></span><!----> <div role="none" class="active svelte-qppwpp"><button class="svelte-qppwpp">Home</button></div><!----> <div role="none" class="svelte-qppwpp"><button class="svelte-qppwpp">Search</button></div><!----> <div role="none" class="svelte-qppwpp"><button class="svelte-qppwpp">Playlists</button></div><!----> <form class="svelte-ihdyk8"><input name="query" placeholder="Search" autocomplete="off" class="svelte-ihdyk8"> <i class="fas fa-search svelte-ihdyk8"></i></form><!----></div></main><!----> <main class="svelte-k9g445"><div class="main-holder svelte-k9g445"><div class="body-content svelte-1kllikg"><h3>Argon release :D</h3> <p>Search for a song to begin!</p> <br> <p>This is literally my first svelte project, i probably could've released this a few weeks sooner if i just made it in vanilla html 😭</p> <p>^ expect shi<span>tty</span> code 😊, also im bad at css.</p> <br> <p>yes ik this is half baked, like i said its my first svelte project, and i made basically every beginner mistake T-T</p> <br> <p>All apis from Soundcloud</p> <br> <p>Made by: <a href="https://github.com/jobidev" target="_blank">JobiDev</a></p> <p>Join the discord! <a href="https://discord.com/invite/nX6sWSa9HE" target="_blank">here</a></p></div><!----></div></main><!----> <div class="holder svelte-f40y2o"><div class="main-holder svelte-f40y2o"><div class="footer svelte-f40y2o"><main class="svelte-k1ku4p"><div class="left svelte-k1ku4p"><div class="holder svelte-epjxzk"><div style="height: 100%; aspect-ratio:1; display:flex;justify-content:center;align-items:center;"><img class="img svelte-epjxzk" role="none" alt="" src="./empty.png"></div> <div class="card-names svelte-epjxzk"><p class="card-title svelte-epjxzk">No Song Selected</p> <sub class="svelte-epjxzk">No Song Selected</sub></div> <div class="like svelte-epjxzk"><!----><i role="none" class="fa-solid fa-heart icon-mid tooltip" data-title="Like this song" style=""></i><!----></div></div><!----></div> <div class="middle svelte-k1ku4p"><div class="mid-holder svelte-k1ku4p"><div class="top svelte-k1ku4p"><div class="svelte-3pfdl6"><main class="svelte-1jhpv6y"><button aria-label="Download"><i style="font-size: var(--icon-small);" class="fa-solid fa-arrow-down-to-line tooltip" data-title="Download"></i></button></main><!----> <div class="svelte-1y9uecc"><button aria-label="Backward"><i class="fa-solid fa-fw fa-backward-step tooltip" data-title="Previous"></i></button><!----></div><!----> <div class="svelte-e27pdq"><button aria-label="Play"><i class="fa-solid fa-fw fa-circle-play tooltip svelte-e27pdq" data-title="Play"></i></button><!----></div><!----> <div class="svelte-1y9uecc"><button aria-label="Forward"><i class="fa-solid fa-fw fa-forward-step tooltip" data-title="Next"></i></button><!----></div><!----> <div class="svelte-qe42dk"><!----><button aria-label="Repeat"><i class="fa-solid fa-fw fa-repeat tooltip svelte-qe42dk" data-title="Loop Off"></i></button><!----></div><!----></div><!----></div> <div class="bottom svelte-k1ku4p"><main role="none" class="svelte-1x8gv4l"><sub class="current-time svelte-1x8gv4l">0:00</sub> <div role="none" class="bar-holder svelte-1x8gv4l"><div class="bar svelte-1x8gv4l"><div class="bar-accent svelte-1x8gv4l" style=""></div> <div class="head svelte-1x8gv4l" role="none"></div></div></div> <sub class="current-time svelte-1x8gv4l">0:00</sub></main><!----></div></div></div> <div class="right svelte-k1ku4p"><div class="svelte-1g66qup"><button aria-label="Open Miniplayer"><i class="fa-solid fa-window-maximize tooltip svelte-1g66qup" data-title="Open Miniplayer"></i></button><!----></div><!----> <main class="svelte-jyh9nz"><i role="none" class="fa-solid fa-fw
+    fa-volume svelte-jyh9nz"></i> <div class="top svelte-jyh9nz" role="none"><div class="bar svelte-jyh9nz"><div class="bar-accent svelte-jyh9nz" style="height: 100%;"></div> <div class="head svelte-jyh9nz" style="bottom: 100%;"></div></div></div></main><!----></div> <audio style="display: none;" preload="metadata" src=""></audio></main><!----></div></div></div><!----></main></div>
+  <div id="tooltip"></div>
+
+<script defer="">
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js", { scope: "/" })
+      .then(() => console.log("setup sw :thumbs:"))
+      .catch(console.error);
+  }
+
+  window.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('preload').remove();
+  })
+</script>
+<style>
+  #preload {
+    background-color: var(--dark-color);
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>

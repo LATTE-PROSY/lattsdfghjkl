@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orbit Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; font-family:"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body {
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(145deg,#f0f4ff,#e0eaff);
+  overflow:hidden;
+}
+
+/* Loading Screen */
+#loading { position:fixed; inset:0; background:#f0f4ff; display:flex; justify-content:center; align-items:center; z-index:999; flex-direction:column; font-size:22px; font-weight:600; color:#555; transition:opacity .5s ease; }
+#loading.hide { opacity:0; pointer-events:none; }
+
+/* Glass container */
+#login-section, #dashboard {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  max-width:450px;
+  padding:50px 30px;
+  border-radius:30px;
+  backdrop-filter:blur(20px) saturate(180%);
+  background:rgba(255,255,255,0.65);
+  box-shadow:0 15px 40px rgba(0,0,0,0.15);
+  text-align:center;
+  transition:0.3s ease;
+}
+
+/* Floating label inputs */
+.input-group {
+  position: relative;
+  width:100%;
+  margin:20px 0;
+}
+.input-group input {
+  width:100%;
+  padding:16px 16px 16px 16px;
+  border-radius:15px;
+  border:none;
+  background:rgba(255,255,255,0.75);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.08);
+  font-size:16px;
+  outline:none;
+  transition:0.3s;
+}
+.input-group label {
+  position:absolute;
+  left:16px;
+  top:16px;
+  color:#777;
+  font-size:14px;
+  pointer-events:none;
+  transition:0.2s;
+}
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top:-10px;
+  left:14px;
+  font-size:12px;
+  color:#6c5ce7;
+  background:rgba(255,255,255,0.65);
+  padding:0 4px;
+}
+
+/* Buttons */
+button, .google-login {
+  width:100%;
+  padding:16px;
+  margin-top:15px;
+  font-size:16px;
+  font-weight:600;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+  transition:0.25s;
+}
+#login-btn { background:linear-gradient(135deg,#6c5ce7,#a29bfe); color:white; }
+#login-btn:hover { transform:scale(1.03); }
+#register-btn { background:linear-gradient(135deg,#55efc4,#00b894); color:white; }
+#register-btn:hover { transform:scale(1.03); }
+.google-login {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:white;
+  border:1px solid #dadce0;
+  color:#555;
+  font-weight:500;
+}
+.google-login img { width:24px; height:24px; margin-left:10px; }
+.google-login:hover { box-shadow:0 4px 12px rgba(0,0,0,0.1); transform:scale(1.02); }
+
+/* Dashboard Panels */
+#dashboard h1 { font-size:28px; margin-bottom:30px; }
+.dashboard-container { display:flex; gap:25px; width:100%; flex-wrap:wrap; }
+.panel { flex:1 1 45%; padding:30px; border-radius:25px; background:rgba(255,255,255,0.65); backdrop-filter:blur(18px); box-shadow:0 10px 30px rgba(0,0,0,0.08); transition:0.3s ease; }
+.panel:hover { transform:translateY(-4px); }
+.panel h2 { margin-bottom:20px; font-size:22px; font-weight:700; color:#2d3436; }
+.stats p { margin:12px 0; font-weight:500; color:#2d3436; }
+.progress-bar { width:100%; height:14px; background:rgba(0,0,0,0.08); border-radius:14px; overflow:hidden; margin-top:8px; }
+.progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#6c5ce7,#a29bfe); border-radius:14px; transition:width .6s ease; }
+
+.announcements { display:flex; flex-direction:column; gap:12px; }
+.announcement { padding:14px; border-radius:15px; background:rgba(255,255,255,0.65); box-shadow:0 5px 15px rgba(0,0,0,0.05); font-size:15px; color:#2d3436; }
+
+/* Responsive */
+@media(max-width:900px){ .dashboard-container{flex-direction:column;} .panel{flex:1 1 100%;} }
+#iframe-container { position:fixed; inset:0; width:100%; height:100%; display:none; }
+#iframe-container iframe { width:100%; height:100%; border:none; }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">Loading Orbit Dashboard…</div>
+
+<!-- LOGIN -->
+<section id="login-section">
+  <h2>🌞 Welcome back!</h2>
+
+  <div class="input-group">
+    <input id="email-input" type="email" placeholder=" " required>
+    <label>Email</label>
+  </div>
+  <div class="input-group">
+    <input id="password-input" type="password" placeholder=" " required>
+    <label>Password</label>
+  </div>
+  <button id="login-btn">Sign In</button>
+
+  <div class="input-group">
+    <input id="username-input" type="text" placeholder=" ">
+    <label>Full Name (for registration)</label>
+  </div>
+  <button id="register-btn">Create Account</button>
+
+  <div style="margin-top:20px; font-weight:500; color:#555;">or</div>
+  <div class="google-login" id="google-login">
+    <span>Sign in with Google</span>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+  </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard">
+  <h1>Hello, <span id="username">Friend</span> 👋</h1>
+  <div class="dashboard-container">
+    <div class="panel stats">
+      <h2>Your Info</h2>
+      <p><strong>Name:</strong> <span id="username-display">Friend</span></p>
+      <p><strong>Email:</strong> <span id="email"></span></p>
+      <p><strong>Level:</strong> <span id="level">1</span></p>
+      <p><strong>XP:</strong> <span id="xp">0</span></p>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <button id="daily-reward">🎁 Claim Daily XP</button>
+      <button id="launch-site">🚀 Open App</button>
+      <button id="logout-btn">Logout</button>
+    </div>
+    <div class="panel announcements">
+      <h2>News & Updates</h2>
+      <div class="announcement">🎉 UI fully revamped for a professional look</div>
+      <div class="announcement">💡 Daily XP rewards active!</div>
+      <div class="announcement">🌟 Side-by-side dashboard with smooth panels</div>
+    </div>
+  </div>
+</section>
+
+<!-- IFRAME -->
+<div id="iframe-container"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDCPv7xbqk2G57KcWNZH-RtlMc7Dcl_oAw",
+  authDomain: "auth-app-ed077.firebaseapp.com",
+  projectId: "auth-app-ed077",
+  storageBucket: "auth-app-ed077.firebasestorage.app",
+  messagingSenderId: "996052589935",
+  appId: "1:996052589935:web:4cc4a67b64cc99d8389c9a"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// UI Elements
+const loadingScreen = document.getElementById("loading");
+const loginSection = document.getElementById("login-section");
+const dashboard = document.getElementById("dashboard");
+const usernameEl = document.getElementById("username");
+const usernameDisplay = document.getElementById("username-display");
+const emailEl = document.getElementById("email");
+const xpEl = document.getElementById("xp");
+const levelEl = document.getElementById("level");
+const progressFill = document.getElementById("progress-fill");
+const iframeContainer = document.getElementById("iframe-container");
+
+// XP & Level
+let xp = parseInt(localStorage.getItem("xp"))||0;
+let level = parseInt(localStorage.getItem("level"))||1;
+function updateStats(){ xpEl.textContent=xp; levelEl.textContent=level; progressFill.style.width=(xp/(level*100)*100)+"%"; localStorage.setItem("xp",xp); localStorage.setItem("level",level); }
+
+// Daily reward
+document.getElementById("daily-reward").addEventListener("click",()=>{
+  const lastClaim = localStorage.getItem("lastRewardDate");
+  const today = new Date().toDateString();
+  if(lastClaim===today){ alert("Already claimed today 😊"); return; }
+  const gain=Math.floor(Math.random()*50)+25;
+  xp+=gain; if(xp>=level*100){level++; xp=0; alert(`🎉 Leveled up to ${level}!`);}else{alert(`+${gain} XP earned!`);}
+  localStorage.setItem("lastRewardDate",today); updateStats();
+});
+
+// Email register
+document.getElementById("register-btn").addEventListener("click", async()=>{
+  const email=document.getElementById("email-input").value;
+  const password=document.getElementById("password-input").value;
+  const username=document.getElementById("username-input").value;
+  if(!email||!password||!username){alert("Fill all fields"); return;}
+  try{const u=await createUserWithEmailAndPassword(auth,email,password); await updateProfile(u.user,{displayName:username}); alert("Account created! Sign in.");}
+  catch(e){alert(e.message);}
+});
+
+// Email sign-in
+document.getElementById("login-btn").addEventListener("click",async()=>{
+  const email=document.getElementById("email-input").value;
+  const password=document.getElementById("password-input").value;
+  if(!email||!password){alert("Fill all fields"); return;}
+  try{await signInWithEmailAndPassword(auth,email,password);}catch(e){alert(e.message);}
+});
+
+// Google sign-in
+document.getElementById("google-login").addEventListener("click",async()=>{
+  try{const provider=new GoogleAuthProvider(); await signInWithPopup(auth,provider);}catch(e){alert(e.message);}
+});
+
+// Logout
+document.getElementById("logout-btn").addEventListener("click",async()=>{await signOut(auth); iframeContainer.style.display="none";});
+
+// Auth listener
+onAuthStateChanged(auth,user=>{
+  loadingScreen.classList.add("hide");
+  if(user){
+    loginSection.style.display="none";
+    dashboard.style.display="flex";
+    usernameEl.textContent=user.displayName||"Friend";
+    usernameDisplay.textContent=user.displayName||"Friend";
+    emailEl.textContent=user.email;
+    updateStats();
+  }else{loginSection.style.display="flex"; dashboard.style.display="none";}
+});
+
+// Launch iframe
+document.getElementById("launch-site").addEventListener("click",()=>{
+  dashboard.style.display="none";
+  iframeContainer.style.display="block";
+  iframeContainer.innerHTML=`<iframe src="https://example.com" style="width:100%;height:100%;border:none;"></iframe>`;
+});
+</script>
+</body>
+</html>

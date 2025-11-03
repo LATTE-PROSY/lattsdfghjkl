@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/.nekoweb-api/static/site.js" type="text/javascript" defer></script><script src="/.nekoweb-api/static/site.js" type="text/javascript" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Latte Network — Chat (fixed)</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --accent: 49 116 255;
+      --glass-radius: 18px;
+      --max-width: 920px;
+      --shadow-1: 0 10px 40px rgba(6,8,12,0.6);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+  body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #e9f0ff;
+  background: url("https://edubase.nekoweb.org/latte.png") center/cover no-repeat fixed;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding: 28px; 
+  overflow: hidden;
+  position: relative;
+}
+
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 0;
+}
+
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+    .entry-wrap{ width:100%; max-width:var(--max-width); margin:0 auto; position:relative; z-index:5; animation: sceneIn .45s both; }
+    @keyframes sceneIn{ from{opacity:0; transform:translateY(12px) scale(.985)} to{opacity:1; transform:none} }
+
+    .chat-shell{ display:flex; flex-direction:column; width:100%; height:86vh; max-height:920px; border-radius:calc(var(--glass-radius)+6px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: var(--shadow-1); overflow:hidden; border:1px solid rgba(255,255,255,0.04); backdrop-filter: blur(16px) saturate(120%); }
+
+    header.app-header{ display:flex; align-items:center; justify-content:space-between; padding:18px 22px; gap:12px; border-bottom:1px solid rgba(255,255,255,0.03); }
+    .title{ display:flex; gap:12px; align-items:center; }
+    .brand{ width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; font-size:18px; background: linear-gradient(135deg,#3174ff44,#d8f0ff11); }
+    .meta .name{ font-weight:700; font-size:1.05rem; color:#FFFFFF }
+    .header-actions{ display:flex; align-items:center; gap:12px; }
+
+    .messages{ flex:1; overflow:auto; padding:20px 26px; display:flex; flex-direction:column; gap:12px; position:relative; }
+    .messages::-webkit-scrollbar{ width:10px }
+    .message{ max-width:78%; display:flex; gap:12px; align-items:flex-start; animation: msgIn .34s both; position:relative; }
+    @keyframes msgIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+    .message.self{ margin-left:auto; flex-direction:row-reverse; max-width:72% }
+    .avatar{ width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:1.05rem; background:linear-gradient(135deg,#ffd1f3,#aabfff); box-shadow: 0 6px 18px rgba(0,0,0,0.4); flex-shrink:0; }
+
+    .bubble { 
+  background: linear-gradient(180deg, rgba(49,116,255,0.96), rgba(49,116,255,0.82));
+  color: white;
+  border: 6px solid rgba(49,116,255,0.18);
+  border-radius: 16px; /* or any radius you want */
+}
+    .self .bubble{ background: linear-gradient(180deg, rgba(49,116,255,0.96), rgba(49,116,255,0.82)); color:white; border:7px solid rgba(49,116,255,0.18); }
+
+    .meta-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px }
+    .sender{ font-weight:700; font-size:0.92rem; color: #FFFFFF }
+    .time{ font-size:0.78rem; color: rgba(210,220,255,0.62); margin-left:auto }
+    .text{ font-size:1rem; line-height:1.35; word-wrap:break-word; }
+
+    .reactions { display:flex; gap:8px; align-items:center; margin-top:8px; margin-left:58px; user-select:none; }
+    .message.self .reactions { margin-left:0; margin-right:58px; justify-content:flex-end }
+    .reaction-pill { display:inline-flex; gap:8px; align-items:center; padding:6px 8px; border-radius:18px; font-size:0.95rem; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.03); cursor:pointer; transition: transform .12s ease, background .12s ease; }
+    .reaction-pill.active { background: linear-gradient(90deg, rgba(49,116,255,0.14), rgba(49,116,255,0.06)); border-color: rgba(49,116,255,0.18); transform: translateY(-2px) }
+    .reaction-emoji{ font-size:1rem }
+    .reaction-count{ font-size:0.9rem; color:rgba(220,230,255,0.9) }
+
+    .reaction-menu { position:fixed; z-index:9999; display:flex; gap:8px; padding:8px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow: 0 12px 30px rgba(4,10,30,0.4); border:1px solid rgba(255,255,255,0.04); transform-origin: bottom center; animation: menuPop .12s cubic-bezier(.2,.9,.25,1); }
+    @keyframes menuPop { from{ transform: scale(.88); opacity:0 } to{ transform: scale(1); opacity:1 } }
+    .menu-btn{ padding:8px 10px; border-radius:10px; cursor:pointer; font-size:1.05rem; background:transparent; border:none; }
+    .menu-btn:hover{ transform: translateY(-3px) }
+
+    .composer{ padding:14px 18px; display:flex; gap:12px; align-items:center; border-top:1px solid rgba(255,255,255,0.03); background: linear-gradient(180deg, rgba(10,12,20,0.36), rgba(10,12,20,0.42)); }
+    .input{ flex:1; display:flex; align-items:center; gap:10px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:10px 12px; border-radius:14px; border: 1px solid rgba(255,255,255,0.03); }
+    .input input{ flex:1; border:0; outline:0; background:transparent; color:#e9f2ff; font-size:1rem; padding:8px 6px; }
+    .btn{ background: linear-gradient(180deg, rgba(49,116,255,0.12), rgba(255,255,255,0.02)); border:none; padding:10px 12px; border-radius:12px; cursor:pointer; color:#e8f1ff; font-weight:700; transition: transform .12s ease }
+    .btn.primary{ background: linear-gradient(90deg, rgba(49,116,255,0.95), rgba(110,150,255,0.92)); box-shadow: 0 10px 36px rgba(49,116,255,0.18) }
+
+    @media (max-width:720px){ .chat-shell{ height:100vh; border-radius:0; } .messages{ padding:14px } }
+    @media (prefers-reduced-motion: reduce){ *{ animation-duration:0 !important; transition:none !important } }
+  </style>
+</head>
+<body>
+  <div class="entry-wrap" id="app">
+    <div class="chat-shell" role="application" aria-label="Latte Network Chat">
+      <header class="app-header">
+        <div class="title">
+          <div class="brand" aria-hidden="true">LN</div>
+          <div class="meta">
+            <div class="name" id="userNameDisplay">Welcome</div>
+            <div class="sub">hiiii • public room</div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="stat"><span class="dot" id="onlineDot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#7dd3fc;margin-right:8px"></span><span id="userCount">0</span> online</div>
+          <button class="tiny-btn" id="btnInvite" title="Copy invite link"><i class="fa-solid fa-link"></i></button>
+          <button class="tiny-btn" id="btnLeave" title="Leave room"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+      </header>
+
+      <main class="messages" id="messages" aria-live="polite" aria-relevant="additions"></main>
+
+      <div class="composer" role="region" aria-label="Message composer">
+        <div class="input" title="Type your message">
+          <input id="messageInput" placeholder="Type a message and press Enter — or use the mic" autocomplete="off" />
+        </div>
+        <div class="compose-actions">
+          <button class="btn" id="micButton" title="Toggle voice input"><i id="micIcon" class="fa-solid fa-microphone-slash"></i></button>
+          <button class="btn primary" id="sendBtn" title="Send message"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- simplified join modal — only asks for name; auto-joins "public" (or #room override) -->
+  <div class="join-modal" id="joinModal" role="dialog" aria-modal="true" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50;background:linear-gradient(180deg, rgba(2,6,12,0.45), rgba(2,6,12,0.35));backdrop-filter: blur(10px);">
+    <div class="join-card" style="width:360px;max-width:92vw;border-radius:18px;padding:20px;text-align:center;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 30px 70px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)">
+      <h2 style="margin:6px 0 10px;color:#e7f0ff">Enter your name</h2>
+      <p style="margin:0 0 12px;color:rgba(200,220,255,0.72)">You'll be placed into the public room automatically (or use a #room in the URL).</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+        <input id="usernameInput" type="text" placeholder="Username (letters & numbers only)" maxlength="24" style="flex:1;padding:10px 12px;border-radius:12px;border:none;outline:none;background: rgba(255,255,255,0.03);color:#eaf2ff" autofocus />
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:6px">
+        <button class="btn primary" id="joinBtn">Join public</button>
+        <button class="btn" id="demoBtn">Demo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- reaction menu -->
+  <div id="reactionMenu" class="reaction-menu" style="display:none">
+    <button class="menu-btn" data-reaction="❤️">❤️</button>
+    <button class="menu-btn" data-reaction="👍">👍</button>
+  </div>
+
+  <script src="https://cdn.scaledrone.com/scaledrone.min.js"></script>
+<script src="https://cdn.scaledrone.com/scaledrone.min.js"></script>
+<script>
+/***** Config & state *****/
+const CLIENT_ID = "aSEKMcR4GsEZONob";
+let drone = null, room = null, clientId = null;
+let userName = "", roomCode = "public";
+const seenMessageIds = new Set();
+
+/***** DOM refs *****/
+const joinModal = document.getElementById('joinModal');
+const joinBtn = document.getElementById('joinBtn');
+const demoBtn = document.getElementById('demoBtn');
+const usernameInput = document.getElementById('usernameInput');
+const userNameDisplay = document.getElementById('userNameDisplay');
+const messagesEl = document.getElementById('messages');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const userCountEl = document.getElementById('userCount');
+
+/***** Helpers *****/
+function uid(){ return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[c])); }
+function formatLinks(text){ const urlPattern = /(https?:\/\/[^\s]+)/g; return escapeHtml(text).replace(urlPattern, url => `<a class="link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`); }
+function formatTime(iso){ try{ const d = iso ? new Date(iso) : new Date(); return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }catch(e){ return ''; } }
+function pickAvatarBg(name){ 
+  const colors = ['linear-gradient(135deg,#ff9a9e,#fecfef)','linear-gradient(135deg,#ffd7a8,#ffb3a7)','linear-gradient(135deg,#cfe9ff,#aabfff)','linear-gradient(135deg,#b7ffda,#9be7d1)','linear-gradient(135deg,#e6d3ff,#c9b6ff)','linear-gradient(135deg,#ffd1f3,#ffb3e6)']; 
+  return colors[(name||'U').charCodeAt(0) % colors.length]; 
+}
+
+/***** DOM: add message *****/
+function addMessageToDOM(data, isSelf=false){
+  if(!data || !data.id || seenMessageIds.has(data.id)) return;
+  seenMessageIds.add(data.id);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'message' + (isSelf ? ' self' : '');
+  wrap.setAttribute('data-mid', data.id);
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.style.background = pickAvatarBg(data.name || 'U');
+  avatar.textContent = (data.name || 'U').charAt(0).toUpperCase();
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = `
+    <div class="meta-row">
+      <div class="sender">${escapeHtml(data.name || 'Unknown')}</div>
+      <div class="time">${formatTime(data.timestamp)}</div>
+    </div>
+    <div class="text">${formatLinks(data.text || '')}</div>
+  `;
+
+  wrap.appendChild(avatar);
+  wrap.appendChild(bubble);
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/***** Connect to ScaleDrone *****/
+function connectToRoom(){
+  drone = new ScaleDrone(CLIENT_ID, { data: { name: userName } });
+
+  drone.on('open', (err) => {
+    if(err){ alert('Connection error: ' + err); return; }
+    clientId = drone.clientId;
+    room = drone.subscribe(`observable-${roomCode}`);
+
+    room.on('open', (err) => {
+      if(err){ alert('Room subscription error: ' + err); return; }
+      drone.publish({ room: `observable-${roomCode}`, message: { type:'join', name:userName, timestamp:new Date().toISOString() }});
+    });
+
+    room.on('data', (data) => {
+      if(!data) return;
+      if(data.type && data.type.startsWith('typing')) { handleTypingEvent(data); return; }
+      if(data.type === 'join'){ showTransient(`${data.name} joined`); return; }
+      if(data.id){ addMessageToDOM(data, false); }
+    });
+
+    room.on('members', updateMembersCount);
+    room.on('member_join', updateMembersCount);
+    room.on('member_leave', updateMembersCount);
+  });
+}
+
+function updateMembersCount(members){
+  const count = (room && room.members && room.members.length) || (Array.isArray(members) ? members.length : 1);
+  userCountEl.textContent = count;
+}
+
+/***** Send message *****/
+sendBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keydown', e => { 
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } else sendTypingStart(); 
+});
+messageInput.addEventListener('input', sendTypingStart);
+
+function sendMessage() {
+  const text = messageInput.value.trim();
+  if(!text) return;
+  const payload = { id: uid(), text, name: userName, timestamp: new Date().toISOString() };
+  if(drone && room){ drone.publish({ room: `observable-${roomCode}`, message: payload }); }
+  addMessageToDOM(payload, true);
+  messageInput.value = '';
+  messageInput.focus();
+  sendTypingStop();
+}
+
+/***** Typing notifications *****/
+let typing = false, typingTimer = null;
+
+function sendTypingStart(){
+  if(!drone || !room) return;
+  if(!typing){ typing = true; drone.publish({ room:`observable-${roomCode}`, message:{ type:'typing:start', name:userName } }); }
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(sendTypingStop, 2000);
+}
+
+function sendTypingStop(){
+  if(!typing) return;
+  typing = false;
+  if(drone && room){ drone.publish({ room:`observable-${roomCode}`, message:{ type:'typing:stop', name:userName } }); }
+}
+
+function handleTypingEvent(data){
+  let el = document.getElementById('typingNotice');
+  if(data.type === 'typing:start' && data.name !== userName){
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'typingNotice';
+      el.style.position = 'fixed';
+      el.style.left = '22px';
+      el.style.bottom = '22px';
+      el.style.background = 'rgba(50,50,50,0.85)';
+      el.style.padding = '6px 12px';
+      el.style.borderRadius = '10px';
+      el.style.color = '#fff';
+      el.style.fontSize = '14px';
+      el.style.zIndex = 200;
+      document.body.appendChild(el);
+    }
+    el.textContent = `${data.name} is typing...`;
+  }
+  if(data.type === 'typing:stop' && el){ el.remove(); }
+}
+
+/***** Toast *****/
+function showTransient(text){
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.style.position = 'fixed';
+  t.style.right = '22px';
+  t.style.bottom = '22px';
+  t.style.zIndex = 160;
+  t.style.background = 'linear-gradient(90deg,#3174ff22,#73b6ff11)';
+  t.style.padding = '10px 14px';
+  t.style.borderRadius='12px';
+  t.style.color='#eaf2ff';
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(()=> t.style.opacity = '0', 2200);
+  setTimeout(()=> t.remove(), 2600);
+}
+
+/***** Join flow *****/
+usernameInput.addEventListener('keydown', e => { if(e.key === 'Enter') joinRoom(); });
+joinBtn.addEventListener('click', joinRoom);
+demoBtn.addEventListener('click', ()=> { usernameInput.value='DemoUser'; joinRoom(); });
+
+function sanitizeName(n){ return n.replace(/[^a-zA-Z0-9 ]/g,'').slice(0,24); }
+function joinRoom(){
+  const rawName = sanitizeName(usernameInput.value || 'Guest');
+  if(!rawName){ alert('Please enter a username'); return; }
+  userName = rawName;
+  roomCode = decodeURIComponent(location.hash.slice(1)) || 'public';
+  userNameDisplay.textContent = userName;
+  joinModal.style.display = 'none';
+  connectToRoom();
+  try{ localStorage.setItem('ln-username', usernameInput.value); }catch(e){}
+}
+
+window.addEventListener('load', ()=>{
+  try{
+    const stored = localStorage.getItem('ln-username'); 
+    if(stored) usernameInput.value = stored;
+  }catch(e){}
+  addMessageToDOM({ id: uid(), name:'System', text:'Enter a name to join the public room.', timestamp:new Date().toISOString() }, false);
+});
+</script>
+<script src="/assets/settings.js"></script>
+
+</body>
+</html>

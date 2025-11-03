@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Untime
+  </title>
+  </head>
+  <body style="text-align: center">
+     <canvas id="unity-canvas" width=1280 height=720 tabindex="-1" style="width: 1280px; height: 720px; background: #2E1D21"></canvas>
+    <script src="https://cdn.jsdelivr.net/gh/LATTE-PROSY/latte-prosy.github.io@main/Build/WebGL.loader.js"></script>
+    <script>
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "https://rawcdn.githack.com/LATTE-PROSY/latte-prosy.github.io/58ae521800172269a472ebe9a9734223194a18f5/Build/WebGL.data.br",
+        frameworkUrl: "https://rawcdn.githack.com/LATTE-PROSY/latte-prosy.github.io/58ae521800172269a472ebe9a9734223194a18f5/Build/WebGL.framework.js.br",
+        codeUrl: "https://rawcdn.githack.com/LATTE-PROSY/latte-prosy.github.io/58ae521800172269a472ebe9a9734223194a18f5/Build/WebGL.wasm.br",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "kulu",
+        productName: "Untime",
+        productVersion: "0.1.0",
+        // PORTED BY MR COFFEE https://latte-x.neocities.org
+      });
+    </script>
+  </body>
+</html>

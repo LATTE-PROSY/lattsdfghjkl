@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Latte X Games</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #1b1f25;
+      color: #fff;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+  
+    .sidebar {
+      width: 220px;
+      background: #171a21;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #2a2f36;
+    }
+    .sidebar h2 {
+      padding: 1rem;
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #66c0f4;
+    }
+    .sidebar nav button {
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 0.8rem 1rem;
+      color: #c7d5e0;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+    .sidebar nav button:hover {
+      background: #2a475e;
+      color: #fff;
+    }
+
+ 
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #1b2838;
+    }
+    header {
+      background: #171a21;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #2a2f36;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: #66c0f4;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .search-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .search-controls input,
+    .search-controls select {
+      background: #2a2f36;
+      border: 1px solid #444b55;
+      padding: 0.5rem 0.8rem;
+      border-radius: 4px;
+      color: #fff;
+      transition: border 0.2s;
+    }
+    .search-controls input:focus,
+    .search-controls select:focus {
+      outline: none;
+      border-color: #66c0f4;
+    }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: #2a2f36;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border: 1px solid #1b1f25;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+      border-color: #66c0f4;
+    }
+    .thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background-size: cover;
+      background-position: center;
+    }
+    .label {
+      padding: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: #c7d5e0;
+    }
+    .fav {
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: color 0.2s;
+    }
+    .fav:hover {
+      color: #66c0f4;
+    }
+
+    
+    #details, #playmode {
+      position: fixed;
+      inset: 0;
+      background: rgba(27, 31, 37, 0.98);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+    #details.active, #playmode.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #details header, #playmode header {
+      background: #171a21;
+      padding: 0.6rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2a2f36;
+    }
+
+    
+    #details .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    #details img {
+      max-width: 300px;
+      border-radius: 8px;
+      border: 1px solid #2a2f36;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+    #details h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: #66c0f4;
+    }
+    #details p {
+      max-width: 600px;
+      color: #c7d5e0;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    .play-btn {
+      background: #66c0f4;
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.4rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    .play-btn:hover {
+      background: #1999ff;
+    }
+
+    /* Iframe mode toolbar */
+    .control-buttons button {
+  background: none;
+  border: none;
+  color: #c7d5e0;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0.4rem;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.control-buttons button:hover {
+  color: #66c0f4;
+  transform: scale(1.15);
+}
+
+.control-buttons i {
+  pointer-events: none;
+  user-select: none;
+}
+
+
+    iframe {
+      flex: 1;
+      border: none;
+      background: #000;
+    }
+
+    #empty {
+      text-align: center;
+      margin-top: 2rem;
+      color: #777;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <aside class="sidebar">
+    <h2>Library</h2>
+    <nav>
+      <button>Pick a game — I'm not stopping you 😎</button>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header>
+      <h1>Latte X Games</h1>
+      <div class="search-controls">
+        <input type="text" id="search" placeholder="Search games...">
+        <span id="gameCount" style="font-size:0.85rem;color:#c7d5e0;">0 games</span>
+        <select id="sort">
+          <option value="az">Sort A–Z</option>
+          <option value="za">Sort Z–A</option>
+          <option value="fav">Favorites First</option>
+        </select>
+      </div>
+    </header>
+    <main>
+      <div id="grid"></div>
+      <p id="empty">No games found</p>
+    </main>
+  </div>
+
+
+  <div id="details">
+    <header>
+      <span id="detailTitle">Game Details</span>
+      <div class="control-buttons">
+        <button id="closeDetails">✖</button>
+      </div>
+    </header>
+    <div class="content">
+      <img id="detailImg" src="" alt="">
+      <h2 id="detailName"></h2>
+      <p id="detailDesc"></p>
+      <button class="play-btn" id="playBtn">Play</button>
+    </div>
+  </div>
+
+
+  <div id="playmode">
+    <header>
+      <span id="playTitle">Playing...</span>
+      <div class="control-buttons">
+       <button id="downloadBtn" title="Download Game"><i class="fas fa-download"></i></button>
+  <button id="fullscreenBtn" title="Fullscreen"><i class="fas fa-expand"></i></button>
+  <button id="closePlay" title="Close"><i class="fas fa-times"></i></button>
+      </div>
+    </header>
+    <iframe id="gameFrame"></iframe>
+  </div>
+
+  <script>
+    const games = [
+      { name: "Undertale Yellow", img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/456.png", url: "/ng/underyellow.html", desc: "Undertale Yellow is a fan-made prequel to Undertale, following a young human navigating the Underground, meeting monsters, and making choices that shape the story." },
+  {
+    name: "R.E.P.O",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/195.png",
+    url: "/ng/R.E.P.O.html",
+    desc: "R.E.P.O. is an online co-op horror game where up to six players retrieve valuable, physics-based objects from eerie locations. Handle items carefully to avoid breaking them and complete your mission successfully."
+  },
+  {
+    name: "RE:RUN",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/260.png",
+    url: "/ng/RE_RUN.html",
+    desc: "RE:RUN is a minimalist first-person action game where you navigate levels by rewinding time. Collect power-ups to rewind to your starting point, adding a unique twist to the gameplay."
+  },
+  {
+    name: "Run 2",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/176.png",
+    url: "/lg/run2.html",
+    desc: "Run 2 is a 3D platformer where you play as a gray alien running through various levels. Utilize gravity-flipping mechanics to overcome obstacles and reach the end of each stage."
+  },
+  {
+    name: "Stickman Climb",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/373.png",
+    url: "/ng/Stickman%20Climb.html",
+    desc: "Stickman Climb is a physics-based platformer where you control a stickman with a pickaxe, navigating through challenging terrains to reach the finish line."
+  },
+  {
+    name: "Slender: The Eight Pages",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/451.png",
+    url: "/ng/Slender_%20The%208%20Pages.html",
+    desc: "Slender: The Eight Pages is a first-person survival horror game where you collect eight pages scattered in a dark forest while avoiding the Slender Man, a faceless entity that stalks you."
+  },
+  {
+    name: "Space Waves",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/117.png",
+    url: "/ng/Space%20Waves%20(1).html",
+    desc: "Space Waves is a side-scrolling arcade game where you control an arrow navigating through space tunnels filled with obstacles. Complete levels to progress through the game."
+  },
+  {
+    name: "Subway Surfers: Mexico",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/139.png",
+    url: "/ng/Subway%20Surfers_%20Mexico.html",
+    desc: "Subway Surfers: Mexico is part of the World Tour series, featuring a new character, Rosa, and a hoverboard named Prickly. Dash through the streets of Mexico City, avoiding obstacles and collecting coins."
+  },
+  {
+    name: "Throw A Potato",
+    img: "/images/tap.png",
+    url: "/ng/fsf.html",
+    desc: "Throw A Potato is a quirky game where you throw potatoes to reach the 'potato paradise' at the end of a rainbow. Encounter various humorous potatoes along the way."
+  },
+  
+  {
+    name: "Time Shooter 3 SWAT",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/201.png",
+    url: "/ng/TimeShooterSWAT.html",
+    desc: "Time Shooter 3 SWAT is a fast-paced shooting game where you play as a SWAT officer battling waves of enemies. Use your arsenal of weapons to survive and complete missions."
+  },
+  {
+    name: "That's Not My Neighbor",
+    img: "/images/thatsnotmyneighbor.png",
+    url: "/lg/That's%20Not%20My%20Neighbor.html",
+    desc: "That's Not My Neighbor is a stealth-horror game where you sneak around your creepy neighbor’s house, avoiding traps and uncovering secrets without getting caught."
+  },
+  {
+    name: "The Deadseat",
+    img: "/images/The%20Deadseat.jpg",
+    url: "/ng/The%20Deadseat.html",
+    desc: "The Deadseat is a horror puzzle game set in a haunted car. Solve eerie challenges while trying to survive the supernatural forces within the vehicle."
+  },
+  {
+    name: "The Man From The Window",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/459.png",
+    url: "/ng/manwindow.html",
+    desc: "The Man From The Window is a first-person horror game where you investigate a house haunted by a mysterious figure. Solve puzzles and survive encounters with the sinister presence."
+  },
+  {
+    name: "UNFAIR BIRD",
+    img: "/images/UNFAIR%20BIRDhtml.png",
+    url: "/ng/UNFAIR%20FLAPPY%20BIRD.html",
+    desc: "UNFAIR BIRD is a challenging and humorous take on Flappy Bird. Navigate through absurdly difficult obstacles that test your reflexes and patience."
+  },
+
+  {
+    name: "ULTRAKILL",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/196.png",
+    url: "/lg/ULTRAKILL.html",
+    desc: "ULTRAKILL is a fast-paced retro-style first-person shooter. Slash and shoot your way through hordes of enemies with extreme speed and skill."
+  },
+  
+  {
+    name: "1v1.LOL",
+    img: "/images/1v1lol.png",
+    url: "/lg/1vd1lol.html",
+    desc: "1v1.LOL is an online building and shooting game where players face off in fast-paced duels, constructing structures and battling opponents to win."
+  },
+  {
+    name: "A Bite at Freddy's",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/258.png",
+    url: "/lg/A%20Bite%20at%20Freddy's.html",
+    desc: "A Bite at Freddy's is a horror game set in the Freddy Fazbear universe, where you survive night shifts and uncover terrifying secrets lurking in the shadows."
+  },
+  {
+    name: "Amanda The Adventurer",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/450.png",
+    url: "/lg/amandaandsheepperson.html",
+    desc: "Amanda The Adventurer is a creepy educational adventure game where you explore a mysterious world, solve puzzles, and uncover hidden horrors behind a cheerful facade."
+  },
+  {
+    name: "Andy's Apple Farm",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/426.png",
+    url: "/ng/Andys%20Apple%20Farm.html",
+    desc: "Andy's Apple Farm is a fun farming simulation game where you harvest apples, manage your farm, and complete daily challenges."
+  },
+  {
+    name: "Basket Bros",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/285.png",
+    url: "/ng/Basket%20Bros.html",
+    desc: "Basket Bros is a competitive 2-player basketball game with simple controls and chaotic gameplay, where you aim to dunk the ball and defeat your opponent."
+  },
+  {
+    name: "Bendy and the Ink Machine",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/215.png",
+    url: "/lg/Bendy%20and%20the%20Ink%20Machine.html",
+    desc: "Bendy and the Ink Machine is a first-person puzzle horror game. Explore a creepy animation studio filled with sinister ink creatures and unravel its dark story."
+  },
+  {
+    name: "BERGENTRUCK_201X",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/455.png",
+    url: "/ng/bt.html",
+    desc: "BERGENTRUCK_201X is an action-packed truck driving game with a retro aesthetic, featuring challenging missions and high-speed deliveries."
+  },
+  {
+    name: "Block Blast",
+    img: "/images/BlockBlast.png",
+    url: "/lg/Block%20Blast.html",
+    desc: "Block Blast is a colorful puzzle game where you strategically destroy blocks to clear levels and achieve high scores."
+  },
+  {
+    name: "BLOODMONEY! (wait for load)",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/454.png",
+    url: "/ng/bm.html",
+    desc: "BLOODMONEY! is a retro-inspired shooter with intense action and fast-paced gameplay. Defeat enemies and survive wave after wave of attacks."
+  },
+  {
+    name: "Buckshot Roulette",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/205.png",
+    url: "/lg/Buckshot%20Roulette.html",
+    desc: "Buckshot Roulette is a tense action game where you spin the chamber, take shots, and survive in this high-risk shooting challenge."
+  },
+
+  {
+    name: "Cookie Clicker",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/82.png",
+    url: "/ng/Cookie%20Clicker.html",
+    desc: "Cookie Clicker is an incremental game where you bake cookies by clicking on a giant cookie and purchasing upgrades to increase your cookie production."
+  },
+  {
+    name: "Cuphead",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/465.png",
+    url: "/ng/Cuphead.html",
+    desc: "Cuphead is a run-and-gun platformer known for its 1930s cartoon art style. Battle quirky bosses and complete challenging levels with precision and timing."
+  },
+  {
+    name: "Chess",
+    img: "/images/chess.png",
+    url: "/ng/new.html",
+    desc: "Chess is the classic strategy board game where two players compete to checkmate each other's king using tactical moves and strategic planning."
+  },
+  {
+    name: "Crazy Cattle 3D",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/164.png",
+    url: "/ng/CrazyCattle3D.html",
+    desc: "Crazy Cattle 3D is a fun physics-based game where you control cattle through various obstacles and levels in a 3D environment."
+  },
+  {
+    name: "Crazy KITTY 3D",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/256.png",
+    url: "/ng/CrazyKITTY3D.html",
+    desc: "Crazy KITTY 3D lets you guide a mischievous cat through wacky 3D levels, avoiding obstacles and collecting items along the way."
+  },
+  {
+    name: "Crazy Chicken 3D",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/255.png",
+    url: "/ng/Chicken3D.html",
+    desc: "Crazy Chicken 3D is a lighthearted 3D game where you control a chicken navigating through tricky courses filled with humorous hazards."
+  },
+  {
+    name: "Drive Mad",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/35.png",
+    url: "/ng/Drive%20Mad.html",
+    desc: "Drive Mad is a driving game where you race through chaotic tracks, dodging obstacles and aiming for the fastest time possible."
+  },
+  {
+    name: "DEAD PLATE",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/462.png",
+    url: "/ng/DEAD PLATE.html",
+    desc: "DEAD PLATE is a horror-themed puzzle game where you explore eerie environments, solving challenges to survive and uncover the story."
+  },
+  {
+    name: "Do not take this cat home",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/193.png",
+    url: "/lg/Do%20NOT%20Take%20This%20Cat%20Home.html",
+    desc: "Do not take this cat home is a puzzle-adventure game where you must safely manage and deliver a mischievous cat, avoiding chaos along the way."
+  },
+  {
+    name: "Doki Doki Literature Club! (Ren'Py Mod)",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/189.png",
+    url: "/ng/Doki%20Doki%20Literature%20Club.html",
+    desc: "Doki Doki Literature Club! is a visual novel with an unsettling twist. Join a school literature club, build relationships, and uncover dark secrets beneath its cute exterior."
+  },
+  {
+    name: "Escape Road",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/264.png",
+    url: "/ng/rapidcar.html",
+    desc: "Escape Road is a fast-paced driving game where you race down hazardous roads, avoiding obstacles and trying to reach the finish line safely."
+  },
+  
+  {
+    name: "Granny",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/90.png",
+    url: "/ng/Granny.html",
+    desc: "Granny is a first-person horror escape game. Sneak around the house, avoid the terrifying granny, and solve puzzles to escape before she catches you."
+  },
+  {
+    name: "Gunspin",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/91.png",
+    url: "/ng/Gunspin.html",
+    desc: "Gunspin is a shooting game where you control a spinning gun turret, aiming to defeat enemies while managing the fast-paced action and physics-based mechanics."
+  },
+  {
+    name: "Going Balls",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/332.png",
+    url: "/ng/Going Balls.html",
+    desc: "Going Balls is a rolling ball game where you guide your ball through challenging tracks, avoiding obstacles and reaching the finish line as fast as possible."
+  },
+  {
+    name: "Ruffle",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/113.png",
+    url: "/ng/Ruffle.html",
+    desc: "Ruffle is an open-source Flash Player emulator that lets you run Flash content safely in modern browsers and on desktops."
+  },
+  {
+    name: "Friday Night Funkin': Hit Single Real",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/483.png",
+    url: "/ng/Friday Night Funkin'_ Hit Single Real.html",
+    desc: "Friday Night Funkin': Hit Single Real is a fan-made mod of Friday Night Funkin’ featuring new songs, characters, and challenging rhythm battles."
+  },
+    {
+    name: "HUMAN EXPENDITURE PROGRAM",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/482.png",
+    url: "/thisissoicanmas%20add%20gaems/Human%20Expenditure%20Program%20(2)",
+    desc: "Human Expenditure Program is a psychological horror visual novel where players control Harvey Harvington’s life, making choices that deeply affect his emotions and memories."
+  },
+  {
+    name: "Friday Night Funkin': 17bucks",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/498.png",
+    url: "/thisissoicanmas%20add%20gaems/Friday%20Night%20Funkin'_%2017%20Bucks_%20Floor%201",
+    desc: "Human Expenditure Program is a psychological horror visual novel where players control Harvey Harvington’s life, making choices that deeply affect his emotions and memories."
+  },
+  {
+    name: "Friday Night Funkin': Lobotomy Dash Funkin",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/499.png",
+    url: "/thisissoicanmas%20add%20gaems/Friday%20Night%20Funkin'_%20FIRE%20IN%20THE%20HOLE_%20Lobotomy%20Dash%20Funkin'",
+    desc: "Lobotomy Dash Funkin’ is a fan-made Friday Night Funkin’ mod combining FNF rhythm battles with the intense levels and music style of Geometry Dash."
+  },
+    {
+    name: "Five Nights at Candy's 1",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/503.png",
+    url: "/thisissoicanmas%20add%20gaems/Five%20Nights%20at%20Candy's",
+    desc: "A Poor Version Of 5 Night At Freddy"
+  },
+      {
+    name: "Rooftop Snipers 2",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/490.png",
+    url: "/thisissoicanmas%20add%20gaems/Rooftop%20Snipers%202",
+    desc: "Rooftop Snipers 2 is a fast-paced, local multiplayer shooter where two players try to knock each other off rooftops using precise aim, jump mechanics, and chaotic physics."
+  },
+        {
+    name: "Friday Night Funkin':Indie Cross",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/489.png",
+    url: "/fnf/Friday%20Night%20Funkin'_%20Indie%20Cross",
+    desc: "Friday Night Funkin’ Crossover is a fan mod adding Bendy, Undertale, and Cuphead characters with unique songs and stages."
+  },
+   {
+    name: "Friday Night Funkin': vs. QT",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/487.png",
+    url: "/fnf/Friday%20Night%20Funkin'_%20vs.%20QT",
+    desc: "Friday Night Funkin’: Vs. QT is a popular FNF mod featuring QT, a friendly robot girl who surprises players with challenging songs, story elements, and secret phases."
+  },
+  {
+    name: "Friday Night Funkin': Mistful Crimson Morning Reboot",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/488.png",
+    url: "/fnf/Friday%20Night%20Funkin'_%20Mistful%20Crimson%20Morning%20Reboot",
+    desc: "Friday Night Funkin’: Mistful Crimson Morning Reboot is a fan-made FNF mod featuring new characters, remixed songs, and challenging rhythm battles with a dark, dramatic theme."
+  },  
+  {
+    name: "Funny Shooter 2",
+    img: "https://m.media-amazon.com/images/I/41+GCaM3dcL.png",
+    url: "/thisissoicanmas%20add%20gaems/funny2",
+    desc: "Funny Shooter 2 is a first-person shooter where you fight waves of bizarre enemies in colorful arenas, using a wide variety of weapons and upgrades."
+  },
+    {
+    name: "Raft",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/457.png",
+    url: "/thisissoicanmas%20add%20gaems/Raft",
+    desc: "Raft is a survival game where you gather resources, build a floating base, and fend off dangers while drifting across the ocean."
+  },
+    {
+    name: "Subway Surfers: Beijing",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/132.png",
+    url: "/thisissoicanmas%20add%20gaems/Subway%20Surfers_%20Beijing",
+    desc: "Subway Surfers: Beijing is a special edition of Subway Surfers set in China’s capital, featuring vibrant cityscapes, themed outfits, and exclusive boards.Subway Surfers: Beijing is a special edition of Subway Surfers set in China’s capital, featuring vibrant cityscapes, themed outfits, and exclusive boards."
+  },
+    {
+    name: "Subway Surfers: San Francisco",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/12.png",
+    url: "/thisissoicanmas%20add%20gaems/Subway%20Surfers_%20San%20Francisco",
+    desc: "**Subway Surfers: San Francisco** is a themed edition of *Subway Surfers* set in the iconic U.S. city, featuring Golden Gate-inspired scenery, new outfits, and exclusive boards."
+  },
+ {
+    name: "Moto X3M 3",
+    img: "https://cdn.jsdelivr.net/gh/gn-math/covers@main/96.png",
+    url: "/thisissoicanmas%20add%20gaems/Moto%20X3M%203",
+    desc: "vroom"
+  },
+     {
+  name: "Super Mario RPG",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/1.png",
+  url: "/new/clsupermariorpg",
+  desc: "A classic Mario role-playing adventure with turn-based battles and exploration."
+},
+{
+  name: "New Super Mario World 2: Around the World",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/2.png",
+  url: "/new/clNewSuperMarioWorld2AroundtheWorld",
+  desc: "Fan-made Mario platformer featuring new levels around the globe."
+},
+{
+  name: "Pepsiman",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/3.png",
+  url: "/new/clpepsiman",
+  desc: "The legendary soda mascot runs, dodges, and saves the day."
+},
+{
+  name: "Pokémon Yellow",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/4.png",
+  url: "/new/clpokeyellow",
+  desc: "Catch 'em all in this enhanced Pokémon adventure with Pikachu as your partner."
+},
+{
+  name: "Super Mario RPG (Alt)",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/5.png",
+  url: "/new/clsupermariorpg",
+  desc: "An alternate build of the beloved Mario RPG adventure."
+},
+{
+  name: "Cooking Mama 2",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/6.png",
+  url: "/new/clcookingmama2",
+  desc: "Chop, cook, and serve in this fun and fast-paced cooking simulator."
+},
+{
+  name: "Mario & Luigi: Partners in Time",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/7.png",
+  url: "/new/clpartnersintime",
+  desc: "Team up with Baby Mario and Luigi in this time-traveling RPG adventure."
+},
+{
+  name: "Time Shooter 2",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/8.png",
+  url: "/new/cltimeshooter2",
+  desc: "Freeze time strategically to outsmart enemies and survive firefights."
+},
+{
+  name: "Bazooka Boy",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/9.png",
+  url: "/new/clbazookaboy",
+  desc: "Blast through obstacles with rockets in this explosive puzzle platformer."
+},
+{
+  name: "Crossy Road",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/10.png",
+  url: "/new/clcrossyroad",
+  desc: "Hop endlessly across roads and rivers in this addictive arcade hit."
+},
+{
+  name: "Gravity Mod",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/11.png",
+  url: "/new/clgravitymod",
+  desc: "Bend gravity to your will in this physics-based platforming challenge."
+},
+{
+  name: "Portal 2D",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/12.png",
+  url: "/new/clportal2d",
+  desc: "Solve puzzles with portals in a clever 2D spin on the classic Portal game."
+},
+{
+  name: "Polytrack",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/13.png",
+  url: "/new/polytrackbutnotflagged",
+  desc: "A colorful low-poly racing experience with fast-paced tracks."
+},
+{
+  name: "Rocket Soccer Derby",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/14.png",
+  url: "/new/clrocketsoccerderby",
+  desc: "Drive cars and score goals in this rocket-powered soccer showdown."
+},
+{
+  name: "Unfair Mario",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/15.png",
+  url: "/new/clunfairmarioworkquestionmark",
+  desc: "A brutally tricky Mario-style platformer designed to troll players."
+},
+{
+  name: "Paper Mario Pro Mode",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/16.png",
+  url: "/new/clpapermariopromode",
+  desc: "A challenging romhack of Paper Mario with tougher battles and new features."
+},
+{
+  name: "Super Mario 64",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/17.png",
+  url: "/new/clsupermario64",
+  desc: "Mario’s groundbreaking 3D adventure through castles, worlds, and stars."
+},
+{
+  name: "Hungry Lamu",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/new.png",
+  url: "/new/clhungrylamu",
+  desc: "A deceptively cute survival horror game starring a very hungry llama."
+},
+{
+  name: "Geometry Dash Lite",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/new%20(2).png",
+  url: "/new/clgdlite",
+  desc: "Jump and fly through rhythm-based levels in this addictive platformer."
+},
+{
+  name: "osu!",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/new%20(3).png",
+  url: "/new/closu",
+  desc: "A rhythm game where you click, slide, and spin to the beat of the music."
+},
+{
+  name: "Just Fall LOL",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/new%20(4).png",
+  url: "/new/cljustfalllol",
+  desc: "Multiplayer penguin battle royale where the last one standing wins."
+},
+{
+  name: "Nuts and Bolts: Screwing Puzzle",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/new%20(5).png",
+  url: "/new/clNutsandBoltsScrewingPuzzle",
+  desc: "A mechanical puzzle game about twisting, turning, and solving with bolts."
+},
+{
+  name: "10 Minutes Till Dawn",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/23.png",
+  url: "/new/cl10minutestildawn",
+  desc: "Survive relentless waves of monsters in this bullet-hell roguelike shooter."
+},
+  
+  { 
+  name: "Angry Birds Space",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/25.png",
+  url: "/gx/clangrybirdsspace",
+  desc: "Launch birds into space and defeat the pigs in zero-gravity puzzles."
+},
+{
+  name: "Bit Planes",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/26.png",
+  url: "/gx/clbitplanes",
+  desc: "Fly pixel planes through obstacles in this retro arcade game."
+},
+{
+  name: "Binding of Isaac: Sheeptime",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/27.png",
+  url: "/gx/clbindingofisaccsheeptime",
+  desc: "A quirky fan spin on the roguelike dungeon crawler classic."
+},
+{
+  name: "Doge Miner",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/28.png",
+  url: "/gx/cldogeminer",
+  desc: "Mine for Dogecoin with upgrades, rockets, and memes."
+},
+{
+  name: "Doge Miner 2",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/29.png",
+  url: "/gx/cldogeminer2",
+  desc: "The upgraded Dogecoin mining adventure with more tools and upgrades."
+},
+{
+  name: "Google Baseball",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/30.png",
+  url: "/gx/clgooglebaseball",
+  desc: "Hit home runs in Google's fun baseball doodle game."
+},
+{
+  name: "My Ass (Meme Game)",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/31.png",
+  url: "/new/clmyass",
+  desc: "A joke meme game with absurd humor."
+},
+{
+  name: "Hide and Seek",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/32.png",
+  url: "/gx/clhidenseek",
+  desc: "Find players or hide from seekers in this fun online game."
+},
+{
+  name: "Infinite Craft",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/33.png",
+  url: "/gx/clinfinitecraft",
+  desc: "Combine elements infinitely to craft anything imaginable."
+},
+{
+  name: "Lucky Block Obby: Euphrates River",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/34.png",
+  url: "/gx/cluckyblockobbyEUOPHRATESRIVER",
+  desc: "An obby challenge with lucky blocks along the Euphrates River."
+},
+{
+  name: "Madalin Stunt Cars Multiplayer",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/35.png",
+  url: "/gx/clmadalinstuntcarsmultiplayerfixed",
+  desc: "Race and stunt in supercars online with friends."
+},
+{
+  name: "Only Up!",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/36.png",
+  url: "/gx/clonlyup",
+  desc: "Climb to the sky in this challenging parkour game."
+},
+{
+  name: "You vs 100 Skibidi",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/37.png",
+  url: "/gx/clyouvs100skibidi",
+  desc: "Survive against an army of 100 Skibidi toilets."
+},
+{
+  name: "Kirby 64: The Crystal Shards",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/38.png",
+  url: "/gx/clkirby64",
+  desc: "Kirby’s classic Nintendo 64 platforming adventure."
+},
+{
+  name: "Ultimate Mortal Kombat",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/39.png",
+  url: "/gx/clultimatemortalkombat",
+  desc: "A retro fighting game with brutal combat and fatalities."
+},
+{
+  name: "Funny Battle 2",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/40.png",
+  url: "/gx/clfunnybattle2",
+  desc: "A wacky ragdoll shooting battle full of chaos."
+},
+{
+  name: "Gold Digger FRVR",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/41.png",
+  url: "/gx/clgolddiggerfrvr",
+  desc: "Dig tunnels, collect treasure, and upgrade your tools."
+},
+{
+  name: "Highway Racer 2",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/42.png",
+  url: "/csfvdf.html",
+  desc: "Drive fast, dodge traffic, and race on endless highways."
+},
+{
+  name: "Just One Boss",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/43.png",
+  url: "/gx/cljustoneboss",
+  desc: "A bullet hell game where you face one tough boss."
+},
+{ 
+  name: "Swordfight!!",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/44.png",
+  url: "/new/Swordfight!!",
+  desc: "chess"
+},
+{ 
+  name: "Karlson",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/45.png",
+  url: "/sss",
+  desc: "Get the milk"
+},
+{ 
+  name: "Undertale 10th Anniversary",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/46.png",
+  url: "/pookie%20sans",
+  desc: "Play new boss fights From the Very Own Live Stream"
+},
+{  
+  name: "Majora's Mask",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/48.png",
+  url: "/new/clmajorasmask",
+  desc: "Embark on a dark quest to save Termina before the moon falls."
+},
+{ 
+  name: "Ocarina of Time",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/47.png",
+  url: "/new/clocarinaoftime",
+  desc: "Travel through time and face legendary boss battles in Hyrule."
+},
+{ 
+  name: "World box",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/47.png",
+  url: "/new/World%20Box",
+  desc: "kill mini people."
+},
+{ 
+  name: "Slime rancher",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/51.png",
+  url: "/new/Slime%20Rancher",
+  desc: "just slime"
+},
+{ 
+  name: "Pumpkill 64",
+  img: "https://cdn.jsdelivr.net/gh/LATTE-PROSY/ICONS-MC@main/52.png",
+  url: "/new/pumpkill64",
+  desc: "Happy Halloween"
+}
+
+    ];
+
+    const grid = document.getElementById("grid");
+    const search = document.getElementById("search");
+    const sort = document.getElementById("sort");
+    const empty = document.getElementById("empty");
+    const details = document.getElementById("details");
+    const detailTitle = document.getElementById("detailTitle");
+    const detailImg = document.getElementById("detailImg");
+    const detailName = document.getElementById("detailName");
+    const detailDesc = document.getElementById("detailDesc");
+    const playBtn = document.getElementById("playBtn");
+    const closeDetails = document.getElementById("closeDetails");
+
+    const playmode = document.getElementById("playmode");
+    const playTitle = document.getElementById("playTitle");
+    const gameFrame = document.getElementById("gameFrame");
+    const closePlay = document.getElementById("closePlay");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    let currentGame = null;
+
+    function saveFavorites(){ localStorage.setItem("favorites", JSON.stringify(favorites)); }
+    function toggleFavorite(name){
+      if(favorites.includes(name)) favorites = favorites.filter(f=>f!==name);
+      else favorites.unshift(name);
+      saveFavorites();
+      render();
+    }
+
+    function render(){
+      grid.innerHTML = "";
+      let list = games.filter(g => g.name.toLowerCase().includes(search.value.toLowerCase()));
+      if(sort.value==="az") list.sort((a,b)=>a.name.localeCompare(b.name));
+      if(sort.value==="za") list.sort((a,b)=>b.name.localeCompare(a.name));
+      if(sort.value==="fav") list.sort((a,b)=>(favorites.includes(b.name)?1:0)-(favorites.includes(a.name)?1:0));
+
+      document.getElementById("gameCount").textContent = `${list.length} game${list.length !== 1 ? 's' : ''}`;
+
+      empty.style.display = list.length ? "none" : "block";
+      list.forEach(g => {
+        const el = document.createElement("div");
+        el.className = "card";
+        el.innerHTML = `
+          <div class="thumb" style="background-image:url('${g.img}')"></div>
+          <div class="label">
+            <div class="name">${g.name}</div>
+            <div class="fav">${favorites.includes(g.name)?"★":"☆"}</div>
+          </div>`;
+        el.querySelector(".fav").addEventListener("click", e => {
+          e.stopPropagation(); toggleFavorite(g.name);
+        });
+        el.addEventListener("click", () => openDetails(g));
+        grid.appendChild(el);
+      });
+    }
+
+    function openDetails(game){
+      currentGame = game;
+      detailTitle.textContent = game.name;
+      detailImg.src = game.img;
+      detailName.textContent = game.name;
+      detailDesc.textContent = game.desc;
+      details.classList.add("active");
+    }
+
+    function closeDetailsPanel(){ details.classList.remove("active"); }
+
+    playBtn.addEventListener("click", () => {
+      if(currentGame){
+        playTitle.textContent = currentGame.name;
+        gameFrame.src = currentGame.url;
+        downloadBtn.setAttribute("href", currentGame.url);
+        downloadBtn.setAttribute("download", currentGame.name + ".html");
+        details.classList.remove("active");
+        playmode.classList.add("active");
+      }
+    });
+
+    closeDetails.addEventListener("click", closeDetailsPanel);
+    closePlay.addEventListener("click", () => { 
+      playmode.classList.remove("active"); 
+      gameFrame.src = ""; 
+    });
+
+    fullscreenBtn.addEventListener("click", () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        playmode.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      }
+    });
+
+    
+    downloadBtn.addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.href = currentGame.url;
+      a.download = `${currentGame.name}.html`;
+      a.click();
+    });
+
+    search.addEventListener("input", render);
+    sort.addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>

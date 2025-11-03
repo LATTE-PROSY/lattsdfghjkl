@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Player</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Reset & base */
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Roboto', sans-serif; }
+body { background:#0f0f0f; color:#fff; min-height:100vh; }
+
+/* Header */
+header {
+    background:#111; border-bottom:1px solid #222; padding:12px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:1000; border-radius:0 0 15px 15px;
+}
+header h1 { font-weight:700; font-size:1.6rem; color:#ff69b4; letter-spacing:1px; }
+.search-bar { flex:1; margin:0 20px; display:flex; border-radius:10px; overflow:hidden; box-shadow:0 0 15px rgba(255,105,180,0.2); }
+.search-bar input {
+    flex:1; padding:10px 15px; border:none; outline:none; background:#222; color:#fff; transition:all 0.3s; border-radius:10px 0 0 10px;
+}
+.search-bar input:focus { box-shadow:0 0 12px #ff69b4; }
+.search-bar button {
+    padding:10px 20px; border:none; background:#ff69b4; color:#fff; cursor:pointer; font-weight:500; transition:all 0.3s; border-radius:0 10px 10px 0; box-shadow:0 0 10px #ff69b4;
+}
+.search-bar button:hover { background:#ff85c1; box-shadow:0 0 15px #ff69b4; transform:scale(1.05); }
+
+/* Main layout */
+.container { display:flex; max-width:1200px; margin:24px auto; gap:24px; flex-wrap:wrap; }
+.video-section { flex:2; display:flex; flex-direction:column; gap:15px; }
+.results-section { flex:1; display:flex; flex-direction:column; gap:12px; max-height:calc(100vh - 120px); overflow-y:auto; }
+
+/* Video player */
+.video-player { width:100%; height:500px; background:#000; border-radius:15px; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 20px rgba(255,105,180,0.4); }
+.video-player iframe { width:100%; height:100%; border:none; border-radius:15px; }
+
+/* Video info */
+.video-info { background:#111; padding:15px; border-radius:15px; box-shadow:0 4px 12px rgba(255,105,180,0.3); }
+.video-info h2 { font-size:1.3rem; margin-bottom:10px; color:#ff69b4; }
+.video-info p { font-size:0.95rem; color:#ccc; line-height:1.5; max-height:150px; overflow-y:auto; }
+
+/* Search results list */
+.video-item { display:flex; gap:12px; cursor:pointer; padding:10px; border-radius:12px; transition:all 0.3s; background:#111; border:1px solid #222; box-shadow:0 0 6px rgba(255,105,180,0.1); }
+.video-item:hover { background:#1a1a1a; box-shadow:0 0 12px #ff69b4; transform:translateY(-3px); }
+.video-thumbnail { width:120px; height:68px; flex-shrink:0; border-radius:10px; overflow:hidden; background:#000; }
+.video-thumbnail img { width:100%; height:100%; object-fit:cover; }
+.video-details { flex:1; display:flex; flex-direction:column; justify-content:center; }
+.video-title { font-size:1rem; font-weight:500; color:#ff69b4; line-height:1.2; }
+.video-channel { font-size:0.85rem; color:#ff85c1; margin-top:2px; }
+.video-views { font-size:0.8rem; color:#aaa; margin-top:2px; }
+
+/* Loading & Error */
+.loading, .error { text-align:center; padding:20px; color:#ff69b4; font-weight:bold; }
+
+/* Scrollbar for results */
+.results-section::-webkit-scrollbar { width:8px; border-radius:10px; }
+.results-section::-webkit-scrollbar-thumb { background:#ff69b4; border-radius:10px; }
+.results-section::-webkit-scrollbar-track { background:#111; }
+
+/* Responsive */
+@media(max-width:768px){
+    .container{ flex-direction:column; }
+    .video-player{ height:300px; }
+    .search-bar { margin:10px 0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <h1>lattetube</h1>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search YouTube..." onkeypress="if(event.key==='Enter'){searchVideos();}">
+        <button onclick="searchVideos()">Search</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="video-section">
+        <div class="video-player" id="videoPlayer">
+            <span style="color:#888;">search then click a videos</span>
+        </div>
+        <div class="video-info" id="videoInfo" style="display:none;">
+            <h2 id="videoTitle"></h2>
+            <p id="videoDescription"></p>
+        </div>
+    </div>
+
+    <div class="results-section" id="searchResults">
+        <p style="color:#888; text-align:center;">Search results will appear here...</p>
+    </div>
+</div>
+
+<script>
+const API_KEY = 'AIzaSyDZkLKZ5BOID1NTDFaRSm0b9gcRRf0D_NU'; // Hidden
+
+async function searchVideos(){
+    const query = document.getElementById('searchInput').value.trim();
+    const resultsContainer = document.getElementById('searchResults');
+    if(!query){ resultsContainer.innerHTML='<p class="error">Enter a search term</p>'; return; }
+    resultsContainer.innerHTML='<p class="loading">Searching YouTube...</p>';
+
+    try{
+        const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&videoDuration=medium&key=${API_KEY}`);
+        const data = await res.json();
+        if(data.error) throw new Error(data.error.message);
+        displayResults(data.items || []);
+    }catch(err){
+        resultsContainer.innerHTML=`<p class="error">Error: ${err.message}</p>`;
+    }
+}
+
+function displayResults(videos){
+    const container = document.getElementById('searchResults');
+    if(videos.length===0){ container.innerHTML='<p class="error">No results found</p>'; return; }
+
+    container.innerHTML = videos.map(v=>{
+        const thumb = v.snippet.thumbnails.medium || v.snippet.thumbnails.default;
+        return `
+        <div class="video-item" onclick="playVideo('${v.id.videoId}','${escapeHtml(v.snippet.title)}','${escapeHtml(v.snippet.description)}')">
+            <div class="video-thumbnail"><img src="${thumb.url}" alt="${escapeHtml(v.snippet.title)}"></div>
+            <div class="video-details">
+                <div class="video-title">${escapeHtml(v.snippet.title)}</div>
+                <div class="video-channel">${escapeHtml(v.snippet.channelTitle)}</div>
+                <div class="video-views">Published: ${new Date(v.snippet.publishedAt).toLocaleDateString()}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function playVideo(id,title,desc){
+    document.getElementById('videoPlayer').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1" allowfullscreen></iframe>`;
+    document.getElementById('videoInfo').style.display='block';
+    document.getElementById('videoTitle').textContent=title;
+    document.getElementById('videoDescription').textContent=desc || 'No description available';
+}
+
+function escapeHtml(text){
+    const div = document.createElement('div'); div.textContent=text; return div.innerHTML;
+}
+</script>
+
+</body>
+</html>

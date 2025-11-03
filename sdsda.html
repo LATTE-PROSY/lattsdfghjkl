@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Marcus Market Place</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+body{margin:0;font-family:sans-serif;background:#111;color:#fff;padding:40px;}
+h1{text-align:center;}
+.market{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;margin-top:40px;}
+.card{background:rgba(255,255,255,0.08);border-radius:12px;padding:16px;text-align:center;}
+.card i{font-size:36px;margin-bottom:8px;}
+button{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;}
+button:hover{background:rgba(255,255,255,0.3);}
+</style>
+</head>
+<body>
+<h1>Marcus Market Place</h1>
+<div class="market" id="market"></div>
+
+<script src="shared.js"></script>
+<script>
+const APPS=[
+  {id:'notes', title:'Notes', icon:'fas fa-sticky-note', url:'https://example.com/notes'},
+  {id:'music', title:'Music', icon:'fas fa-music', url:'https://example.com/music'},
+  {id:'paint', title:'Paint', icon:'fas fa-paint-brush', url:'https://example.com/paint'}
+];
+
+const market=document.getElementById('market');
+APPS.forEach(app=>{
+  const c=document.createElement('div');
+  c.className='card';
+  c.innerHTML=`<i class="${app.icon}"></i><h3>${app.title}</h3><button>Download</button>`;
+  c.querySelector('button').onclick=()=>installApp(app);
+  market.appendChild(c);
+});
+
+function installApp(app){
+  Shared.sendCommand({action:'install',app});
+  alert(`"${app.title}" sent to Marcus OS`);
+}
+</script>
+</body>
+</html>

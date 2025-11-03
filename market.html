@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Latte Market</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+<style>
+body {
+  background: #111015;
+  color: #eee;
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 40px;
+}
+h1 {
+  font-size: 28px;
+  color: #b8a6ff;
+  margin-bottom: 8px;
+}
+p.subtitle {
+  color: #bbb;
+  margin-bottom: 30px;
+}
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+.app-card {
+  background: #1a1a22;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: transform .15s ease, background .2s ease;
+}
+.app-card:hover { transform: translateY(-3px); background: #22222b; }
+.app-icon {
+  width: 56px; height: 56px;
+  border-radius: 12px; overflow: hidden; flex-shrink: 0;
+}
+.app-icon img { width: 100%; height: 100%; object-fit: cover; }
+.app-info { flex: 1; }
+.app-info h2 {
+  font-size: 16px; color: #fff; margin: 0 0 4px 0;
+}
+.meta {
+  font-size: 13px; color: #999;
+  display: flex; align-items: center; gap: 8px;
+}
+.meta i { opacity: 0.7; }
+.rating {
+  display: flex; align-items: center; gap: 4px;
+  color: #f7c843;
+  font-size: 13px;
+}
+.install-btn {
+  background: #2e2e38;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.install-btn:hover { background: #3a3a45; }
+.install-btn.installed {
+  background: #164a2a;
+  color: #8fffba;
+}
+</style>
+</head>
+<body>
+<h1>Latte App Market</h1>
+<p class="subtitle">Discover and install new applications for your OS.</p>
+<div class="market-grid" id="marketGrid"></div>
+
+<script src="system.js"></script>
+<script>
+const apps = [
+  {
+    id: 'partners', title: 'Partners',
+    size: '2.8 MB', category: 'Utility', rating: 4.4,
+    icon: 'https://cdn-icons-png.flaticon.com/512/2965/2965455.png',
+    url: 'https://example.com'
+  },
+  {
+    id: 'fillet', title: 'Fillet Browser',
+    size: '6.2 MB', category: 'Browser', rating: 4.7,
+    icon: 'https://cdn-icons-png.flaticon.com/512/3039/3039381.png',
+    url: 'https://example.com'
+  },
+  {
+    id: 'hotline', title: 'Hotline Miami',
+    size: '8.2 MB', category: 'Action', rating: 4.8,
+    icon: 'https://upload.wikimedia.org/wikipedia/en/2/2b/Hotline_Miami_cover.jpg',
+    url: 'https://example.com'
+  },
+  {
+    id: 'apple-shooter', title: 'Apple Shooter',
+    size: '3.7 MB', category: 'Sports', rating: 4.2,
+    icon: 'https://play-lh.googleusercontent.com/6EEnwEt0dzzztcAjm0JqpVvEylQ4H_lDJvAtCH1KkCFbnjpi5RMYogX_f03VMIcMhzA=w480-h960',
+    url: 'https://example.com'
+  },
+  {
+    id: 'hollow', title: 'Hollow Knight',
+    size: '9.1 MB', category: 'Adventure', rating: 4.9,
+    icon: 'https://upload.wikimedia.org/wikipedia/en/3/32/Hollow_Knight_cover.jpg',
+    url: 'https://example.com'
+  },
+  {
+    id: 'one', title: '1',
+    size: '2.3 MB', category: 'Puzzle', rating: 3.8,
+    icon: 'https://cdn-icons-png.flaticon.com/512/25/25231.png',
+    url: 'https://example.com'
+  }
+];
+
+const grid = document.getElementById("marketGrid");
+function renderMarket() {
+  const installed = System.getApps();
+  grid.innerHTML = "";
+  apps.forEach(app => {
+    const isInstalled = installed.some(a => a.id === app.id);
+    const div = document.createElement("div");
+    div.className = "app-card";
+    div.innerHTML = `
+      <div class="app-icon"><img src="${app.icon}" alt=""></div>
+      <div class="app-info">
+        <h2>${app.title}</h2>
+        <div class="meta">
+          <i class="fa-solid fa-database"></i>${app.size}
+          <i class="fa-solid fa-tag"></i>${app.category}
+          <div class="rating"><i class="fa-solid fa-star"></i>${app.rating}</div>
+        </div>
+      </div>
+      <button class="install-btn ${isInstalled ? 'installed' : ''}" data-id="${app.id}">
+        ${isInstalled ? '✔ Installed' : '<i class="fa-solid fa-download"></i> Install'}
+      </button>
+    `;
+    grid.appendChild(div);
+  });
+}
+grid.addEventListener("click", e => {
+  if (e.target.closest(".install-btn")) {
+    const btn = e.target.closest(".install-btn");
+    const id = btn.dataset.id;
+    const app = apps.find(a => a.id === id);
+    if (!btn.classList.contains("installed")) {
+      System.addApp(app);
+      btn.classList.add("installed");
+      btn.innerHTML = "✔ Installed";
+    }
+  }
+});
+renderMarket();
+</script>
+</body>
+</html>

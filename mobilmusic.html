@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sigma Music Player</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .card {
+      width: 95%;
+      max-width: 420px;
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      backdrop-filter: blur(12px);
+    }
+
+    #search {
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: none;
+      font-size: 15px;
+      background: rgba(255,255,255,0.12);
+      color: white;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .results {
+      width: 100%;
+      max-height: 180px;
+      overflow-y: auto;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      display: none;
+      margin-bottom: 12px;
+    }
+    .results.active { display: block; }
+    .result-item {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .result-item:hover { background: rgba(255,255,255,0.08); }
+    .result-img img { width: 44px; height: 44px; border-radius: 10px; margin-right: 10px; }
+
+    .album-art { width: 100%; border-radius: 16px; margin-bottom: 12px; }
+
+    .song-info { text-align: center; margin-bottom: 10px; }
+    #title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    #artist { font-size: 14px; opacity: 0.7; }
+
+    .progress-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+    #progress {
+      flex: 1;
+      appearance: none;
+      height: 6px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.2);
+      outline: none;
+      cursor: pointer;
+    }
+    #progress::-webkit-slider-thumb {
+      appearance: none;
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #1db954;
+      cursor: pointer;
+    }
+    .time { font-size: 12px; opacity: 0.7; margin: 0 6px; }
+
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .controls button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      padding: 12px;
+      border-radius: 14px;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .controls button:hover {
+      transform: scale(1.1);
+      background: #1db954;
+    }
+
+    .active-repeat { color: #1db954 !important; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <input id="search" type="text" placeholder="Search songs...">
+    <div class="results" id="results"></div>
+
+    <img id="albumCover" class="album-art" src="https://via.placeholder.com/400x400">
+    <div class="song-info">
+      <div id="title">Select a song</div>
+      <div id="artist"></div>
+    </div>
+
+    <div class="progress-container">
+      <span id="currentTime" class="time">0:00</span>
+      <input type="range" id="progress" value="0" min="0" step="1">
+      <span id="duration" class="time">0:00</span>
+    </div>
+
+    <div class="controls">
+      <button id="prev"><i class="fa-solid fa-backward"></i></button>
+      <button id="playPause"><i class="fa-solid fa-play"></i></button>
+      <button id="next"><i class="fa-solid fa-forward"></i></button>
+      <button id="repeat"><i class="fa-solid fa-repeat"></i></button>
+      <button id="volume"><i class="fa-solid fa-volume-high"></i></button>
+    </div>
+
+    <div id="ytPlayer"></div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById("search");
+    const searchResults = document.getElementById("results");
+    const titleEl = document.getElementById("title");
+    const artistEl = document.getElementById("artist");
+    const albumCover = document.getElementById("albumCover");
+    const playPauseBtn = document.getElementById("playPause");
+    const repeatBtn = document.getElementById("repeat");
+    const volumeBtn = document.getElementById("volume");
+    const progress = document.getElementById("progress");
+    const currentTimeEl = document.getElementById("currentTime");
+    const durationEl = document.getElementById("duration");
+
+    let player, isPlaying = false, isMuted = false;
+    let repeatMode = 0; // 0 = off, 1 = repeat all, 2 = repeat one
+    let trackQueue = [], currentIndex = -1;
+    const YT_KEY = "AIzaSyAf62uxazE_nFYZhq1St7jPjSL9l7-mzV8";
+
+    // Load YouTube API
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player("ytPlayer", {
+        height: "0", width: "0",
+        playerVars: { playsinline: 1, enablejsapi: 1, modestbranding: 1, rel: 0 },
+        events: { onStateChange: onPlayerStateChange }
+      });
+    }
+
+    function onPlayerStateChange(e) {
+      if (e.data === YT.PlayerState.PLAYING) {
+        isPlaying = true;
+        playPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        updateProgress();
+      } else if (e.data === YT.PlayerState.ENDED) {
+        handleSongEnd();
+      }
+    }
+
+    function handleSongEnd() {
+      if (repeatMode === 2) {
+        // Repeat one
+        player.seekTo(0);
+        player.playVideo();
+      } else if (repeatMode === 1) {
+        // Repeat all
+        nextSong();
+      } else {
+        // No repeat
+        isPlaying = false;
+        playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+      }
+    }
+
+    // Playback controls
+    playPauseBtn.addEventListener("click", () => {
+      if (!player) return;
+      if (isPlaying) player.pauseVideo();
+      else player.playVideo();
+    });
+
+    volumeBtn.addEventListener("click", () => {
+      if (!player) return;
+      if (isMuted) {
+        player.unMute();
+        volumeBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+        isMuted = false;
+      } else {
+        player.mute();
+        volumeBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+        isMuted = true;
+      }
+    });
+
+    repeatBtn.addEventListener("click", () => {
+      repeatMode = (repeatMode + 1) % 3;
+      repeatBtn.classList.remove("active-repeat");
+      if (repeatMode === 1) {
+        repeatBtn.classList.add("active-repeat");
+        repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+      } else if (repeatMode === 2) {
+        repeatBtn.classList.add("active-repeat");
+        repeatBtn.innerHTML = '<i class="fa-solid fa-repeat-1"></i>';
+      } else {
+        repeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+      }
+    });
+
+    // Search
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.trim();
+      if (q.length > 1) searchSongs(q);
+      else searchResults.style.display = "none";
+    });
+
+    function searchSongs(query) {
+      fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=8`)
+        .then(r => r.json())
+        .then(data => displayResults(data.results));
+    }
+
+    function displayResults(results) {
+      searchResults.innerHTML = "";
+      if (!results.length) {
+        searchResults.innerHTML = "<div style='padding:8px;'>No results</div>";
+        searchResults.style.display = "block";
+        return;
+      }
+      results.forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "result-item";
+        div.innerHTML = `
+          <div class="result-img"><img src="${item.artworkUrl100}"></div>
+          <div>
+            <div>${item.trackName}</div>
+            <div style="font-size:12px;opacity:0.7">${item.artistName}</div>
+          </div>`;
+        div.onclick = () => {
+          loadTrack(item.trackName, item.artistName, item.artworkUrl100);
+          searchResults.style.display = "none";
+        };
+        searchResults.appendChild(div);
+      });
+      searchResults.style.display = "block";
+    }
+
+    function loadTrack(title, artist, artwork) {
+      titleEl.textContent = title;
+      artistEl.textContent = artist;
+      albumCover.src = artwork;
+
+      // Save to queue
+      trackQueue.push({ title, artist, artwork });
+      currentIndex = trackQueue.length - 1;
+
+      fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(title + " " + artist)}&key=${YT_KEY}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.items.length > 0) {
+            const vid = data.items[0].id.videoId;
+            player.loadVideoById(vid);
+          }
+        });
+    }
+
+    function nextSong() {
+      if (trackQueue.length === 0) return;
+      currentIndex = (currentIndex + 1) % trackQueue.length;
+      const track = trackQueue[currentIndex];
+      loadTrack(track.title, track.artist, track.artwork);
+    }
+
+    function prevSong() {
+      if (trackQueue.length === 0) return;
+      currentIndex = (currentIndex - 1 + trackQueue.length) % trackQueue.length;
+      const track = trackQueue[currentIndex];
+      loadTrack(track.title, track.artist, track.artwork);
+    }
+
+    document.getElementById("next").addEventListener("click", nextSong);
+    document.getElementById("prev").addEventListener("click", prevSong);
+
+    // Progress
+    function updateProgress() {
+      if (!player || !isPlaying) return;
+      const dur = player.getDuration();
+      const cur = player.getCurrentTime();
+      progress.max = dur;
+      progress.value = cur;
+      currentTimeEl.textContent = formatTime(cur);
+      durationEl.textContent = formatTime(dur);
+      requestAnimationFrame(updateProgress);
+    }
+
+    progress.addEventListener("input", () => {
+      if (player) player.seekTo(progress.value);
+    });
+
+    function formatTime(s) {
+      s = Math.floor(s);
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m}:${sec < 10 ? "0" + sec : sec}`;
+    }
+  </script>
+</body>
+</html>
